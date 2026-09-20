@@ -1,0 +1,74 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C++: debug original rules (Linux)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/original_rom_test",
+      "args": [
+        "/home/ycww/下载/三国志Ⅰ--中原之霸者(中文版).nes"
+      ],
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "preLaunchTask": "C++: build",
+      "externalConsole": false
+    },
+    {
+      "name": "C++: debug core tests (Linux)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/campaign_test",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "preLaunchTask": "C++: build",
+      "externalConsole": false
+    },
+    {
+      "name": "C++: debug game (Linux)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/runtime/godot",
+      "args": [
+        "--path",
+        "${workspaceFolder}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "preLaunchTask": "C++: build",
+      "externalConsole": false,
+      "environment": [
+        {
+          "name": "XDG_DATA_HOME",
+          "value": "${workspaceFolder}/.user-data"
+        },
+        {
+          "name": "XDG_CONFIG_HOME",
+          "value": "${workspaceFolder}/.user-config"
+        },
+        {
+          "name": "XDG_CACHE_HOME",
+          "value": "${workspaceFolder}/.user-cache"
+        },
+        {
+          "name": "XKB_CONFIG_ROOT",
+          "value": "/usr/share/X11/xkb"
+        },
+        {
+          "name": "XLOCALEDIR",
+          "value": "/usr/share/X11/locale"
+        },
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": ""
+        }
+      ],
+      "setupCommands": [
+        {
+          "text": "set breakpoint pending on"
+        }
+      ]
+    }
+  ]
+}

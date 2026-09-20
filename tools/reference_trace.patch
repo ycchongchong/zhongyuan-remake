@@ -1,0 +1,77 @@
+--- a/src/x6502.c
++++ b/src/x6502.c
+@@ -27,6 +27,8 @@
+ #include "sound.h"
+ 
+ X6502 X;
++void (*study_step_hook)(uint16_t pc) = 0;
++void (*study_write_hook)(uint16_t pc, uint16_t address, uint8_t value) = 0;
+ uint8_t encryptOpcodes = 0;
+ uint8_t encryptOpcodesConfig = 0;
+ 
+@@ -60,6 +62,7 @@
+ }
+ 
+ static INLINE void WrMemNorm(uint32_t A, uint8_t V) {
++	if(study_write_hook) study_write_hook(X.PC, A, V);
+ 	BWrite[A](A, V);
+ }
+ 
+@@ -68,6 +71,7 @@
+ }
+ 
+ static INLINE void WrRAMFast(uint32_t A, uint8_t V) {
++	if(study_write_hook) study_write_hook(X.PC, A, V);
+ 	RAM[A] = V;
+ }
+ 
+@@ -446,6 +450,7 @@
+ 		}
+ 
+ 		_PI = _P;
++		if(study_step_hook) study_step_hook(_PC);
+ 		b1 = RdMem(_PC);
+ 
+ 		ADDCYC(CycTable[b1]);
+--- a/src/drivers/libretro/libretro.c
++++ b/src/drivers/libretro/libretro.c
+@@ -4438,3 +4438,39 @@
+   return (unsigned)(p-PRGptr[0]);
+ }
+ RETRO_API unsigned retro_study_ppuctrl(void) { return PPU[0]; }
++
++/* Optional bounded traces for independent ROM analysis, disabled by default. */
++extern void (*study_step_hook)(uint16_t pc);
++extern void (*study_write_hook)(uint16_t pc, uint16_t address, uint8_t value);
++static uint8_t study_trace_bytes[32*1024*1024];
++static unsigned study_trace_count, study_trace_limit, study_trace_mode;
++static uint16_t study_watch_lo, study_watch_hi;
++static void study_trace_add(uint16_t pc, uint16_t address, uint8_t value, int write) {
++    unsigned off, i; uint8_t *entry;
++    if(study_trace_count>=study_trace_limit) return;
++    if(write && (address<study_watch_lo || address>study_watch_hi)) return;
++    off=retro_study_prg_offset(pc); entry=study_trace_bytes+study_trace_count*16;
++    for(i=0;i<4;i++) entry[i]=(off>>(8*i))&255;
++    entry[4]=pc&255;entry[5]=pc>>8;
++    entry[6]=X.A;entry[7]=X.X;entry[8]=X.Y;entry[9]=X.S;entry[10]=X.P;
++    if(write){entry[11]=address&255;entry[12]=address>>8;entry[13]=value;}
++    else for(i=0;i<3;i++) {
++        const uint16_t fetch=(uint16_t)(pc+i);
++        entry[11+i]=(fetch>=0x8000 && Page[fetch>>11]) ? Page[fetch>>11][fetch] : 0;
++    }
++    entry[14]=write;entry[15]=0;study_trace_count++;
++}
++static void study_on_step(uint16_t pc){study_trace_add(pc,0,0,0);}
++static void study_on_write(uint16_t pc,uint16_t address,uint8_t value){study_trace_add(pc,address,value,1);}
++RETRO_API void retro_study_trace_start(unsigned limit,unsigned mode,unsigned lo,unsigned hi){
++    study_trace_count=0;study_trace_limit=limit>2097152?2097152:limit;
++    study_trace_mode=mode;study_watch_lo=lo;study_watch_hi=hi;
++    study_step_hook=(mode&1)?study_on_step:0;study_write_hook=(mode&2)?study_on_write:0;
++}
++RETRO_API unsigned retro_study_trace_stop(uint8_t *out){
++    study_step_hook=0;study_write_hook=0;
++    if(out)memcpy(out,study_trace_bytes,study_trace_count*16);
++    return study_trace_count;
++}
++/* Presentation-only capture switch; never changes ROM or game RAM. */
++RETRO_API void retro_study_hide_sprites(unsigned hidden) { FCEUI_SetRenderDisable(hidden ? 1 : 0, -1); }

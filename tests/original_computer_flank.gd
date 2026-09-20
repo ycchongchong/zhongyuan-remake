@@ -1,0 +1,66 @@
+extends SceneTree
+var failures=0
+var scene:Control
+var path="user://native-computer-flank-test.json"
+func check(ok:bool,message:String):
+	print(("PASS: " if ok else "FAIL: ")+message)
+	if not ok:failures+=1
+func reload_step():
+	var before:Dictionary=scene.native.session_snapshot()
+	check(scene.native.save_session(path).is_empty() and scene.native.load_session(path).is_empty() and scene.native.session_snapshot()==before,"flank/cache/reuse boundary reloads exactly")
+func _init():call_deferred("run")
+func run():
+	scene=load("res://original_campaign.tscn").instantiate()
+	check(scene.initialize(4,2).is_empty(),"initialize computer flank continuation")
+	root.add_child(scene)
+	scene.set_process(false)
+	await process_frame
+	check(scene.native.load_session("res://tests/computer-flank-move.json").is_empty(),"load legal human approach to vacant fort flank")
+	scene.refresh()
+	scene.show_battle_details()
+	check(scene.computer_next.visible and not scene.computer_next.disabled and scene.computer_next.text=="继续电脑绕行","old pending flank exposes its new continuation")
+	scene.computer_next.emit_signal("pressed")
+	check(int(scene.state.sram[0xdab+6])==0x43 and int(scene.state.sram[0xded+6])==0x53 and int(scene.state.battle.tactics.computer_reuse)==3 and int(scene.state.battle.tactics.points)==18,"first move stores original cached goal and same-unit marker")
+	reload_step()
+	check(not scene.native.continue_computer_flank().is_empty(),"cannot repeat one flank move")
+	for step in range(2):
+		scene.computer_next.emit_signal("pressed")
+		check(scene.computer_next.text=="继续同一部队行动" and not scene.computer_next.disabled,"next assessment retains original same-unit continuation")
+		reload_step()
+		var before:Dictionary=scene.native.session_snapshot()
+		check(not scene.native.plan_computer_tactics().is_empty() and scene.native.session_snapshot()==before,"normal descending scan cannot override reuse")
+		scene.computer_next.emit_signal("pressed")
+		check(int(scene.state.battle.tactics.computer_plan.slot)==3 and not scene.state.battle.tactics.has("computer_reuse"),"same unit is selected and marker cleared")
+		reload_step()
+		scene.computer_next.emit_signal("pressed")
+		scene.computer_next.emit_signal("pressed")
+		check(scene.computer_next.text=="继续电脑绕行" and scene.state.battle.tactics.computer_motion.branch=="cached_target","cached target is resumed after normal strategy attempt")
+		reload_step()
+		scene.computer_next.emit_signal("pressed")
+		reload_step()
+		if step==0:check(int(scene.state.sram[0xdab+6])==0x53 and int(scene.state.battle.tactics.points)==16,"second move reaches destination with original two-point charge")
+		else:check(int(scene.state.sram[0xded+6])==255 and not scene.computer_next.disabled and scene.state.battle.tactics.computer_motion.kind=="scan","arrival clears cache and offers next-unit scan")
+	for name in ["retry","retry_selected"]:
+		check(scene.native.load_session("res://tests/computer-flank-"+name+".json").is_empty(),"load blocked flank scenario")
+		scene.refresh()
+		scene.show_battle_details()
+		scene.computer_next.emit_signal("pressed")
+		check(scene.computer_next.text=="检查补充计策" and not scene.computer_next.disabled,"blocked flank offers exactly one original direct strategy attempt")
+		reload_step()
+		scene.computer_next.emit_signal("pressed")
+		reload_step()
+		check(not scene.native.retry_computer_strategy().is_empty(),"direct retry cannot reroll")
+		if name=="retry":check(not scene.computer_next.disabled and scene.state.battle.tactics.computer_motion.kind=="scan","empty retry reaches explicit scan boundary")
+		else:
+			check(scene.computer_next.text=="执行电脑计策" and scene.state.battle.tactics.computer_strategy.kind=="strategy","selected retry connects to existing strategy execution")
+			scene.computer_next.emit_signal("pressed")
+			check(scene.state.battle.tactics.has("strategy_result"),"retry-selected strategy resolves")
+			reload_step()
+			scene.computer_next.emit_signal("pressed")
+			check(scene.state.battle.tactics.computer.kind=="acted","retry strategy returns to ordinary computer progression")
+			reload_step()
+	scene.battle_details.hide()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	print("ORIGINAL COMPUTER FLANK: %d failures" % failures)
+	await root.get_node("OriginalSound").shutdown()
+	quit(1 if failures else 0)

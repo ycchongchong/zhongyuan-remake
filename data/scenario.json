@@ -1,0 +1,2152 @@
+{
+  "scenario_id": "zhongyuan-original-map-v2",
+  "max_owner": 6,
+  "opening": "刘备军据守新野、荆州、衡阳。统筹三城，逐步争夺天下三十城。",
+  "provenance": {
+    "rom_sha256": "9658ef6e04fa725bd52c326745768abeae72179b4ecc882e0b7ceb4ff7484959",
+    "initial_data": "ROM city records at 0x271c, officer records at 0x2b54; before opening AI turns.",
+    "owners": "flags & 7, confirmed in CPU A49B-A4A6; remapped to six desktop faction IDs.",
+    "topology": "Coordinates decoded from ROM 0x1de75/0x1de93; 64 roads decoded from ROM pointer table 0x19a50 and independently matched to original 线路 screen pixel components.",
+    "derived": "troops = resident infantry+cavalry+archers; ability = strongest resident martial; development = max(1,land//10); grain = 300+troops//10. These are prototype adaptations."
+  },
+  "cities": [
+    {
+      "id": 0,
+      "name": "辽东",
+      "owner": 3,
+      "gold": 160,
+      "grain": 380,
+      "troops": 800,
+      "development": 2,
+      "general": "武将 #120",
+      "ability": 60,
+      "reference": {
+        "rom_file_offset": 10012,
+        "flags_raw": 0,
+        "faction_id_candidate": 0,
+        "land": 20,
+        "commerce": 40,
+        "population": 15000,
+        "control": 35,
+        "officer_slots": [
+          81,
+          120,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 160,
+        "officers": [
+          {
+            "id": 81,
+            "name": null,
+            "stamina": 82,
+            "intelligence": 62,
+            "martial": 46,
+            "virtue": 71,
+            "loyalty": 27,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 400
+          },
+          {
+            "id": 120,
+            "name": null,
+            "stamina": 71,
+            "intelligence": 78,
+            "martial": 60,
+            "virtue": 66,
+            "loyalty": 97,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        1,
+        3
+      ],
+      "pos": [
+        0.90625,
+        0.1
+      ]
+    },
+    {
+      "id": 1,
+      "name": "幽州",
+      "owner": 3,
+      "gold": 180,
+      "grain": 410,
+      "troops": 1100,
+      "development": 2,
+      "general": "武将 #193",
+      "ability": 93,
+      "reference": {
+        "rom_file_offset": 10048,
+        "flags_raw": 0,
+        "faction_id_candidate": 0,
+        "land": 25,
+        "commerce": 40,
+        "population": 20000,
+        "control": 40,
+        "officer_slots": [
+          15,
+          193,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 180,
+        "officers": [
+          {
+            "id": 15,
+            "name": null,
+            "stamina": 81,
+            "intelligence": 23,
+            "martial": 56,
+            "virtue": 22,
+            "loyalty": 66,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 300
+          },
+          {
+            "id": 193,
+            "name": null,
+            "stamina": 92,
+            "intelligence": 31,
+            "martial": 93,
+            "virtue": 54,
+            "loyalty": 79,
+            "infantry": 200,
+            "cavalry": 400,
+            "archers": 100
+          }
+        ]
+      },
+      "neighbors": [
+        0,
+        2,
+        3,
+        4
+      ],
+      "pos": [
+        0.6875,
+        0.14375
+      ]
+    },
+    {
+      "id": 2,
+      "name": "并州",
+      "owner": 3,
+      "gold": 170,
+      "grain": 370,
+      "troops": 700,
+      "development": 3,
+      "general": "武将 #74",
+      "ability": 67,
+      "reference": {
+        "rom_file_offset": 10084,
+        "flags_raw": 64,
+        "faction_id_candidate": 0,
+        "land": 30,
+        "commerce": 40,
+        "population": 20000,
+        "control": 45,
+        "officer_slots": [
+          74,
+          136,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 170,
+        "officers": [
+          {
+            "id": 74,
+            "name": null,
+            "stamina": 79,
+            "intelligence": 38,
+            "martial": 67,
+            "virtue": 42,
+            "loyalty": 66,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 300
+          },
+          {
+            "id": 136,
+            "name": null,
+            "stamina": 52,
+            "intelligence": 62,
+            "martial": 41,
+            "virtue": 75,
+            "loyalty": 71,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        1,
+        4,
+        5,
+        8
+      ],
+      "pos": [
+        0.5625,
+        0.19375
+      ]
+    },
+    {
+      "id": 3,
+      "name": "青州",
+      "owner": 3,
+      "gold": 270,
+      "grain": 370,
+      "troops": 700,
+      "development": 4,
+      "general": "武将 #16",
+      "ability": 42,
+      "reference": {
+        "rom_file_offset": 10120,
+        "flags_raw": 64,
+        "faction_id_candidate": 0,
+        "land": 40,
+        "commerce": 60,
+        "population": 25000,
+        "control": 55,
+        "officer_slots": [
+          16,
+          170,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 270,
+        "officers": [
+          {
+            "id": 16,
+            "name": null,
+            "stamina": 83,
+            "intelligence": 30,
+            "martial": 42,
+            "virtue": 37,
+            "loyalty": 58,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 400
+          },
+          {
+            "id": 170,
+            "name": null,
+            "stamina": 40,
+            "intelligence": 96,
+            "martial": 18,
+            "virtue": 93,
+            "loyalty": 99,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        0,
+        1,
+        4,
+        10
+      ],
+      "pos": [
+        0.8125,
+        0.25
+      ]
+    },
+    {
+      "id": 4,
+      "name": "冀州",
+      "owner": 3,
+      "gold": 220,
+      "grain": 460,
+      "troops": 1600,
+      "development": 3,
+      "general": "武将 #58",
+      "ability": 95,
+      "reference": {
+        "rom_file_offset": 10156,
+        "flags_raw": 64,
+        "faction_id_candidate": 0,
+        "land": 35,
+        "commerce": 45,
+        "population": 35000,
+        "control": 50,
+        "officer_slots": [
+          0,
+          58,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 220,
+        "officers": [
+          {
+            "id": 0,
+            "name": "袁绍",
+            "stamina": 78,
+            "intelligence": 68,
+            "martial": 79,
+            "virtue": 33,
+            "loyalty": null,
+            "infantry": 400,
+            "cavalry": 400,
+            "archers": 200
+          },
+          {
+            "id": 58,
+            "name": null,
+            "stamina": 91,
+            "intelligence": 42,
+            "martial": 95,
+            "virtue": 59,
+            "loyalty": 85,
+            "infantry": 100,
+            "cavalry": 400,
+            "archers": 100
+          }
+        ]
+      },
+      "neighbors": [
+        1,
+        2,
+        3,
+        11,
+        12
+      ],
+      "pos": [
+        0.65625,
+        0.35
+      ]
+    },
+    {
+      "id": 5,
+      "name": "西安阳",
+      "owner": 4,
+      "gold": 150,
+      "grain": 390,
+      "troops": 900,
+      "development": 1,
+      "general": "武将 #182",
+      "ability": 84,
+      "reference": {
+        "rom_file_offset": 10192,
+        "flags_raw": 1,
+        "faction_id_candidate": 1,
+        "land": 15,
+        "commerce": 15,
+        "population": 10000,
+        "control": 30,
+        "officer_slots": [
+          182,
+          50,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 150,
+        "officers": [
+          {
+            "id": 182,
+            "name": null,
+            "stamina": 92,
+            "intelligence": 63,
+            "martial": 84,
+            "virtue": 52,
+            "loyalty": 65,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 200
+          },
+          {
+            "id": 50,
+            "name": null,
+            "stamina": 66,
+            "intelligence": 87,
+            "martial": 30,
+            "virtue": 81,
+            "loyalty": 79,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 400
+          }
+        ]
+      },
+      "neighbors": [
+        2,
+        7,
+        8
+      ],
+      "pos": [
+        0.40625,
+        0.14375
+      ]
+    },
+    {
+      "id": 6,
+      "name": "凉州",
+      "owner": 4,
+      "gold": 170,
+      "grain": 450,
+      "troops": 1500,
+      "development": 1,
+      "general": "武将 #183",
+      "ability": 98,
+      "reference": {
+        "rom_file_offset": 10228,
+        "flags_raw": 129,
+        "faction_id_candidate": 1,
+        "land": 15,
+        "commerce": 20,
+        "population": 12000,
+        "control": 50,
+        "officer_slots": [
+          1,
+          183,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 170,
+        "officers": [
+          {
+            "id": 1,
+            "name": "马腾",
+            "stamina": 82,
+            "intelligence": 53,
+            "martial": 77,
+            "virtue": 84,
+            "loyalty": null,
+            "infantry": 400,
+            "cavalry": 400,
+            "archers": 200
+          },
+          {
+            "id": 183,
+            "name": null,
+            "stamina": 97,
+            "intelligence": 50,
+            "martial": 98,
+            "virtue": 72,
+            "loyalty": 76,
+            "infantry": 0,
+            "cavalry": 400,
+            "archers": 100
+          }
+        ]
+      },
+      "neighbors": [
+        7,
+        9
+      ],
+      "pos": [
+        0.21875,
+        0.25
+      ]
+    },
+    {
+      "id": 7,
+      "name": "安定",
+      "owner": 4,
+      "gold": 180,
+      "grain": 410,
+      "troops": 1100,
+      "development": 2,
+      "general": "武将 #201",
+      "ability": 96,
+      "reference": {
+        "rom_file_offset": 10264,
+        "flags_raw": 129,
+        "faction_id_candidate": 1,
+        "land": 20,
+        "commerce": 25,
+        "population": 15000,
+        "control": 45,
+        "officer_slots": [
+          179,
+          201,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 180,
+        "officers": [
+          {
+            "id": 179,
+            "name": null,
+            "stamina": 73,
+            "intelligence": 43,
+            "martial": 57,
+            "virtue": 51,
+            "loyalty": 72,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 300
+          },
+          {
+            "id": 201,
+            "name": null,
+            "stamina": 95,
+            "intelligence": 48,
+            "martial": 96,
+            "virtue": 76,
+            "loyalty": 90,
+            "infantry": 100,
+            "cavalry": 400,
+            "archers": 100
+          }
+        ]
+      },
+      "neighbors": [
+        5,
+        6,
+        8,
+        9,
+        25
+      ],
+      "pos": [
+        0.34375,
+        0.35
+      ]
+    },
+    {
+      "id": 8,
+      "name": "长安",
+      "owner": 2,
+      "gold": 300,
+      "grain": 390,
+      "troops": 900,
+      "development": 3,
+      "general": "武将 #131",
+      "ability": 57,
+      "reference": {
+        "rom_file_offset": 10300,
+        "flags_raw": 2,
+        "faction_id_candidate": 2,
+        "land": 30,
+        "commerce": 35,
+        "population": 38000,
+        "control": 55,
+        "officer_slots": [
+          131,
+          105,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 300,
+        "officers": [
+          {
+            "id": 131,
+            "name": null,
+            "stamina": 76,
+            "intelligence": 60,
+            "martial": 57,
+            "virtue": 61,
+            "loyalty": 85,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 300
+          },
+          {
+            "id": 105,
+            "name": null,
+            "stamina": 59,
+            "intelligence": 97,
+            "martial": 12,
+            "virtue": 74,
+            "loyalty": 88,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 500
+          }
+        ]
+      },
+      "neighbors": [
+        2,
+        5,
+        7,
+        12,
+        13,
+        25
+      ],
+      "pos": [
+        0.4375,
+        0.4
+      ]
+    },
+    {
+      "id": 9,
+      "name": "西平关",
+      "owner": 4,
+      "gold": 210,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #184",
+      "ability": 65,
+      "reference": {
+        "rom_file_offset": 10336,
+        "flags_raw": 129,
+        "faction_id_candidate": 1,
+        "land": 20,
+        "commerce": 25,
+        "population": 18000,
+        "control": 40,
+        "officer_slots": [
+          184,
+          178,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 210,
+        "officers": [
+          {
+            "id": 184,
+            "name": null,
+            "stamina": 81,
+            "intelligence": 37,
+            "martial": 65,
+            "virtue": 41,
+            "loyalty": 77,
+            "infantry": 0,
+            "cavalry": 300,
+            "archers": 300
+          },
+          {
+            "id": 178,
+            "name": null,
+            "stamina": 75,
+            "intelligence": 47,
+            "martial": 60,
+            "virtue": 55,
+            "loyalty": 78,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        6,
+        7,
+        25,
+        26
+      ],
+      "pos": [
+        0.21875,
+        0.4
+      ]
+    },
+    {
+      "id": 10,
+      "name": "徐州",
+      "owner": 2,
+      "gold": 230,
+      "grain": 400,
+      "troops": 1000,
+      "development": 3,
+      "general": "武将 #36",
+      "ability": 90,
+      "reference": {
+        "rom_file_offset": 10372,
+        "flags_raw": 66,
+        "faction_id_candidate": 2,
+        "land": 30,
+        "commerce": 35,
+        "population": 22000,
+        "control": 60,
+        "officer_slots": [
+          36,
+          222,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 230,
+        "officers": [
+          {
+            "id": 36,
+            "name": null,
+            "stamina": 98,
+            "intelligence": 33,
+            "martial": 90,
+            "virtue": 45,
+            "loyalty": 87,
+            "infantry": 0,
+            "cavalry": 400,
+            "archers": 100
+          },
+          {
+            "id": 222,
+            "name": null,
+            "stamina": 72,
+            "intelligence": 53,
+            "martial": 50,
+            "virtue": 72,
+            "loyalty": 80,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        3,
+        11,
+        15,
+        16
+      ],
+      "pos": [
+        0.8125,
+        0.45
+      ]
+    },
+    {
+      "id": 11,
+      "name": "兖州",
+      "owner": 2,
+      "gold": 200,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #37",
+      "ability": 85,
+      "reference": {
+        "rom_file_offset": 10408,
+        "flags_raw": 66,
+        "faction_id_candidate": 2,
+        "land": 25,
+        "commerce": 30,
+        "population": 21000,
+        "control": 45,
+        "officer_slots": [
+          37,
+          34,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 200,
+        "officers": [
+          {
+            "id": 37,
+            "name": null,
+            "stamina": 97,
+            "intelligence": 61,
+            "martial": 85,
+            "virtue": 68,
+            "loyalty": 91,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 200
+          },
+          {
+            "id": 34,
+            "name": null,
+            "stamina": 88,
+            "intelligence": 52,
+            "martial": 60,
+            "virtue": 61,
+            "loyalty": 90,
+            "infantry": 0,
+            "cavalry": 300,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        4,
+        10,
+        12,
+        14,
+        16
+      ],
+      "pos": [
+        0.6875,
+        0.45
+      ]
+    },
+    {
+      "id": 12,
+      "name": "洛阳",
+      "owner": 2,
+      "gold": 320,
+      "grain": 460,
+      "troops": 1600,
+      "development": 3,
+      "general": "曹操",
+      "ability": 86,
+      "reference": {
+        "rom_file_offset": 10444,
+        "flags_raw": 66,
+        "faction_id_candidate": 2,
+        "land": 35,
+        "commerce": 40,
+        "population": 36000,
+        "control": 55,
+        "officer_slots": [
+          2,
+          12,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 320,
+        "officers": [
+          {
+            "id": 2,
+            "name": "曹操",
+            "stamina": 82,
+            "intelligence": 80,
+            "martial": 86,
+            "virtue": 96,
+            "loyalty": null,
+            "infantry": 500,
+            "cavalry": 300,
+            "archers": 200
+          },
+          {
+            "id": 12,
+            "name": null,
+            "stamina": 82,
+            "intelligence": 60,
+            "martial": 42,
+            "virtue": 59,
+            "loyalty": 88,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 400
+          }
+        ]
+      },
+      "neighbors": [
+        4,
+        8,
+        11,
+        13,
+        14,
+        21
+      ],
+      "pos": [
+        0.5625,
+        0.45
+      ]
+    },
+    {
+      "id": 13,
+      "name": "新野",
+      "owner": 1,
+      "gold": 200,
+      "grain": 450,
+      "troops": 1500,
+      "development": 2,
+      "general": "赵云",
+      "ability": 96,
+      "reference": {
+        "rom_file_offset": 10480,
+        "flags_raw": 4,
+        "faction_id_candidate": 4,
+        "land": 25,
+        "commerce": 20,
+        "population": 19000,
+        "control": 55,
+        "officer_slots": [
+          4,
+          145,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 200,
+        "officers": [
+          {
+            "id": 4,
+            "name": "刘备",
+            "stamina": 78,
+            "intelligence": 63,
+            "martial": 53,
+            "virtue": 99,
+            "loyalty": null,
+            "infantry": 400,
+            "cavalry": 400,
+            "archers": 200
+          },
+          {
+            "id": 145,
+            "name": "赵云",
+            "stamina": 98,
+            "intelligence": 85,
+            "martial": 96,
+            "virtue": 87,
+            "loyalty": 95,
+            "infantry": 0,
+            "cavalry": 400,
+            "archers": 100
+          }
+        ]
+      },
+      "neighbors": [
+        8,
+        12,
+        21,
+        22
+      ],
+      "pos": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": 14,
+      "name": "豫州",
+      "owner": 2,
+      "gold": 250,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #128",
+      "ability": 63,
+      "reference": {
+        "rom_file_offset": 10516,
+        "flags_raw": 66,
+        "faction_id_candidate": 2,
+        "land": 20,
+        "commerce": 25,
+        "population": 20000,
+        "control": 55,
+        "officer_slots": [
+          128,
+          32,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 250,
+        "officers": [
+          {
+            "id": 128,
+            "name": null,
+            "stamina": 86,
+            "intelligence": 55,
+            "martial": 63,
+            "virtue": 52,
+            "loyalty": 89,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 300
+          },
+          {
+            "id": 32,
+            "name": null,
+            "stamina": 49,
+            "intelligence": 93,
+            "martial": 10,
+            "virtue": 73,
+            "loyalty": 95,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 500
+          }
+        ]
+      },
+      "neighbors": [
+        11,
+        12,
+        16,
+        20,
+        21
+      ],
+      "pos": [
+        0.65625,
+        0.55
+      ]
+    },
+    {
+      "id": 15,
+      "name": "建业",
+      "owner": 5,
+      "gold": 260,
+      "grain": 430,
+      "troops": 1300,
+      "development": 2,
+      "general": "孙权",
+      "ability": 51,
+      "reference": {
+        "rom_file_offset": 10552,
+        "flags_raw": 67,
+        "faction_id_candidate": 3,
+        "land": 25,
+        "commerce": 30,
+        "population": 26000,
+        "control": 50,
+        "officer_slots": [
+          3,
+          239,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 260,
+        "officers": [
+          {
+            "id": 3,
+            "name": "孙权",
+            "stamina": 60,
+            "intelligence": 65,
+            "martial": 51,
+            "virtue": 90,
+            "loyalty": null,
+            "infantry": 400,
+            "cavalry": 300,
+            "archers": 300
+          },
+          {
+            "id": 239,
+            "name": null,
+            "stamina": 40,
+            "intelligence": 87,
+            "martial": 5,
+            "virtue": 92,
+            "loyalty": 90,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        10,
+        16,
+        17
+      ],
+      "pos": [
+        0.84375,
+        0.6
+      ]
+    },
+    {
+      "id": 16,
+      "name": "扬州",
+      "owner": 5,
+      "gold": 230,
+      "grain": 410,
+      "troops": 1100,
+      "development": 3,
+      "general": "武将 #141",
+      "ability": 87,
+      "reference": {
+        "rom_file_offset": 10588,
+        "flags_raw": 67,
+        "faction_id_candidate": 3,
+        "land": 30,
+        "commerce": 25,
+        "population": 23000,
+        "control": 45,
+        "officer_slots": [
+          99,
+          141,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 230,
+        "officers": [
+          {
+            "id": 99,
+            "name": null,
+            "stamina": 65,
+            "intelligence": 90,
+            "martial": 86,
+            "virtue": 82,
+            "loyalty": 93,
+            "infantry": 0,
+            "cavalry": 300,
+            "archers": 300
+          },
+          {
+            "id": 141,
+            "name": null,
+            "stamina": 87,
+            "intelligence": 48,
+            "martial": 87,
+            "virtue": 77,
+            "loyalty": 90,
+            "infantry": 0,
+            "cavalry": 300,
+            "archers": 200
+          }
+        ]
+      },
+      "neighbors": [
+        10,
+        11,
+        14,
+        15,
+        17,
+        20
+      ],
+      "pos": [
+        0.75,
+        0.6
+      ]
+    },
+    {
+      "id": 17,
+      "name": "建安",
+      "owner": 5,
+      "gold": 210,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #166",
+      "ability": 75,
+      "reference": {
+        "rom_file_offset": 10624,
+        "flags_raw": 67,
+        "faction_id_candidate": 3,
+        "land": 25,
+        "commerce": 20,
+        "population": 17000,
+        "control": 40,
+        "officer_slots": [
+          97,
+          166,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 210,
+        "officers": [
+          {
+            "id": 97,
+            "name": null,
+            "stamina": 87,
+            "intelligence": 32,
+            "martial": 72,
+            "virtue": 50,
+            "loyalty": 97,
+            "infantry": 0,
+            "cavalry": 300,
+            "archers": 200
+          },
+          {
+            "id": 166,
+            "name": null,
+            "stamina": 90,
+            "intelligence": 50,
+            "martial": 75,
+            "virtue": 65,
+            "loyalty": 77,
+            "infantry": 0,
+            "cavalry": 300,
+            "archers": 200
+          }
+        ]
+      },
+      "neighbors": [
+        15,
+        16,
+        18,
+        20
+      ],
+      "pos": [
+        0.8125,
+        0.75
+      ]
+    },
+    {
+      "id": 18,
+      "name": "交州",
+      "owner": 5,
+      "gold": 160,
+      "grain": 400,
+      "troops": 1000,
+      "development": 1,
+      "general": "武将 #52",
+      "ability": 79,
+      "reference": {
+        "rom_file_offset": 10660,
+        "flags_raw": 67,
+        "faction_id_candidate": 3,
+        "land": 15,
+        "commerce": 15,
+        "population": 11000,
+        "control": 25,
+        "officer_slots": [
+          73,
+          52,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 160,
+        "officers": [
+          {
+            "id": 73,
+            "name": null,
+            "stamina": 67,
+            "intelligence": 60,
+            "martial": 73,
+            "virtue": 83,
+            "loyalty": 99,
+            "infantry": 0,
+            "cavalry": 400,
+            "archers": 200
+          },
+          {
+            "id": 52,
+            "name": null,
+            "stamina": 89,
+            "intelligence": 42,
+            "martial": 79,
+            "virtue": 68,
+            "loyalty": 71,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 200
+          }
+        ]
+      },
+      "neighbors": [
+        17,
+        20,
+        23
+      ],
+      "pos": [
+        0.71875,
+        0.85
+      ]
+    },
+    {
+      "id": 19,
+      "name": "郁林",
+      "owner": 5,
+      "gold": 170,
+      "grain": 390,
+      "troops": 900,
+      "development": 1,
+      "general": "武将 #236",
+      "ability": 68,
+      "reference": {
+        "rom_file_offset": 10696,
+        "flags_raw": 131,
+        "faction_id_candidate": 3,
+        "land": 10,
+        "commerce": 15,
+        "population": 10000,
+        "control": 20,
+        "officer_slots": [
+          218,
+          236,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 170,
+        "officers": [
+          {
+            "id": 218,
+            "name": null,
+            "stamina": 65,
+            "intelligence": 97,
+            "martial": 63,
+            "virtue": 55,
+            "loyalty": 83,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 300
+          },
+          {
+            "id": 236,
+            "name": null,
+            "stamina": 75,
+            "intelligence": 75,
+            "martial": 68,
+            "virtue": 72,
+            "loyalty": 68,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        22,
+        24,
+        28
+      ],
+      "pos": [
+        0.40625,
+        0.9
+      ]
+    },
+    {
+      "id": 20,
+      "name": "江夏",
+      "owner": 5,
+      "gold": 270,
+      "grain": 410,
+      "troops": 1100,
+      "development": 2,
+      "general": "武将 #54",
+      "ability": 94,
+      "reference": {
+        "rom_file_offset": 10732,
+        "flags_raw": 67,
+        "faction_id_candidate": 3,
+        "land": 25,
+        "commerce": 25,
+        "population": 20000,
+        "control": 45,
+        "officer_slots": [
+          79,
+          54,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 270,
+        "officers": [
+          {
+            "id": 79,
+            "name": null,
+            "stamina": 57,
+            "intelligence": 30,
+            "martial": 45,
+            "virtue": 18,
+            "loyalty": 62,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 400
+          },
+          {
+            "id": 54,
+            "name": null,
+            "stamina": 96,
+            "intelligence": 60,
+            "martial": 94,
+            "virtue": 83,
+            "loyalty": 65,
+            "infantry": 100,
+            "cavalry": 400,
+            "archers": 100
+          }
+        ]
+      },
+      "neighbors": [
+        14,
+        16,
+        17,
+        18,
+        21,
+        23
+      ],
+      "pos": [
+        0.65625,
+        0.65
+      ]
+    },
+    {
+      "id": 21,
+      "name": "荆州",
+      "owner": 1,
+      "gold": 250,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #44",
+      "ability": 97,
+      "reference": {
+        "rom_file_offset": 10768,
+        "flags_raw": 4,
+        "faction_id_candidate": 4,
+        "land": 25,
+        "commerce": 30,
+        "population": 21000,
+        "control": 60,
+        "officer_slots": [
+          44,
+          138,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 250,
+        "officers": [
+          {
+            "id": 44,
+            "name": null,
+            "stamina": 99,
+            "intelligence": 82,
+            "martial": 97,
+            "virtue": 87,
+            "loyalty": 97,
+            "infantry": 100,
+            "cavalry": 400,
+            "archers": 100
+          },
+          {
+            "id": 138,
+            "name": null,
+            "stamina": 51,
+            "intelligence": 68,
+            "martial": 46,
+            "virtue": 92,
+            "loyalty": 95,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 400
+          }
+        ]
+      },
+      "neighbors": [
+        12,
+        13,
+        14,
+        20,
+        22,
+        23,
+        24
+      ],
+      "pos": [
+        0.53125,
+        0.65
+      ]
+    },
+    {
+      "id": 22,
+      "name": "衡阳",
+      "owner": 1,
+      "gold": 200,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #155",
+      "ability": 99,
+      "reference": {
+        "rom_file_offset": 10804,
+        "flags_raw": 4,
+        "faction_id_candidate": 4,
+        "land": 20,
+        "commerce": 25,
+        "population": 18000,
+        "control": 50,
+        "officer_slots": [
+          155,
+          189,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 200,
+        "officers": [
+          {
+            "id": 155,
+            "name": null,
+            "stamina": 99,
+            "intelligence": 20,
+            "martial": 99,
+            "virtue": 35,
+            "loyalty": 99,
+            "infantry": 100,
+            "cavalry": 400,
+            "archers": 100
+          },
+          {
+            "id": 189,
+            "name": null,
+            "stamina": 61,
+            "intelligence": 62,
+            "martial": 31,
+            "virtue": 90,
+            "loyalty": 92,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 400
+          }
+        ]
+      },
+      "neighbors": [
+        13,
+        19,
+        21,
+        24,
+        27
+      ],
+      "pos": [
+        0.4375,
+        0.7
+      ]
+    },
+    {
+      "id": 23,
+      "name": "长沙",
+      "owner": 5,
+      "gold": 270,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #82",
+      "ability": 88,
+      "reference": {
+        "rom_file_offset": 10840,
+        "flags_raw": 67,
+        "faction_id_candidate": 3,
+        "land": 25,
+        "commerce": 30,
+        "population": 22000,
+        "control": 55,
+        "officer_slots": [
+          47,
+          82,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 270,
+        "officers": [
+          {
+            "id": 47,
+            "name": null,
+            "stamina": 50,
+            "intelligence": 21,
+            "martial": 36,
+            "virtue": 20,
+            "loyalty": 49,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 400
+          },
+          {
+            "id": 82,
+            "name": null,
+            "stamina": 90,
+            "intelligence": 42,
+            "martial": 88,
+            "virtue": 73,
+            "loyalty": 95,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 200
+          }
+        ]
+      },
+      "neighbors": [
+        18,
+        20,
+        21,
+        24
+      ],
+      "pos": [
+        0.59375,
+        0.75
+      ]
+    },
+    {
+      "id": 24,
+      "name": "零陵",
+      "owner": 5,
+      "gold": 220,
+      "grain": 400,
+      "troops": 1000,
+      "development": 1,
+      "general": "武将 #68",
+      "ability": 82,
+      "reference": {
+        "rom_file_offset": 10876,
+        "flags_raw": 3,
+        "faction_id_candidate": 3,
+        "land": 15,
+        "commerce": 20,
+        "population": 17000,
+        "control": 45,
+        "officer_slots": [
+          224,
+          68,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 220,
+        "officers": [
+          {
+            "id": 224,
+            "name": null,
+            "stamina": 55,
+            "intelligence": 32,
+            "martial": 28,
+            "virtue": 47,
+            "loyalty": 38,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 500
+          },
+          {
+            "id": 68,
+            "name": null,
+            "stamina": 89,
+            "intelligence": 13,
+            "martial": 82,
+            "virtue": 30,
+            "loyalty": 89,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 200
+          }
+        ]
+      },
+      "neighbors": [
+        19,
+        21,
+        22,
+        23
+      ],
+      "pos": [
+        0.5,
+        0.8
+      ]
+    },
+    {
+      "id": 25,
+      "name": "汉中",
+      "owner": 6,
+      "gold": 250,
+      "grain": 410,
+      "troops": 1100,
+      "development": 2,
+      "general": "武将 #146",
+      "ability": 49,
+      "reference": {
+        "rom_file_offset": 10912,
+        "flags_raw": 133,
+        "faction_id_candidate": 5,
+        "land": 25,
+        "commerce": 20,
+        "population": 23000,
+        "control": 55,
+        "officer_slots": [
+          17,
+          146,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 250,
+        "officers": [
+          {
+            "id": 17,
+            "name": null,
+            "stamina": 55,
+            "intelligence": 78,
+            "martial": 16,
+            "virtue": 75,
+            "loyalty": 72,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 500
+          },
+          {
+            "id": 146,
+            "name": null,
+            "stamina": 57,
+            "intelligence": 60,
+            "martial": 49,
+            "virtue": 63,
+            "loyalty": 70,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 400
+          }
+        ]
+      },
+      "neighbors": [
+        7,
+        8,
+        9,
+        26,
+        27
+      ],
+      "pos": [
+        0.3125,
+        0.5
+      ]
+    },
+    {
+      "id": 26,
+      "name": "成都",
+      "owner": 6,
+      "gold": 240,
+      "grain": 450,
+      "troops": 1500,
+      "development": 2,
+      "general": "武将 #206",
+      "ability": 65,
+      "reference": {
+        "rom_file_offset": 10948,
+        "flags_raw": 133,
+        "faction_id_candidate": 5,
+        "land": 25,
+        "commerce": 20,
+        "population": 20000,
+        "control": 50,
+        "officer_slots": [
+          5,
+          206,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 240,
+        "officers": [
+          {
+            "id": 5,
+            "name": "刘璋",
+            "stamina": 51,
+            "intelligence": 38,
+            "martial": 25,
+            "virtue": 97,
+            "loyalty": null,
+            "infantry": 300,
+            "cavalry": 400,
+            "archers": 300
+          },
+          {
+            "id": 206,
+            "name": null,
+            "stamina": 80,
+            "intelligence": 46,
+            "martial": 65,
+            "virtue": 81,
+            "loyalty": 66,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 300
+          }
+        ]
+      },
+      "neighbors": [
+        9,
+        25,
+        27,
+        28,
+        29
+      ],
+      "pos": [
+        0.21875,
+        0.6
+      ]
+    },
+    {
+      "id": 27,
+      "name": "涪陵",
+      "owner": 6,
+      "gold": 200,
+      "grain": 400,
+      "troops": 1000,
+      "development": 2,
+      "general": "武将 #199",
+      "ability": 33,
+      "reference": {
+        "rom_file_offset": 10984,
+        "flags_raw": 133,
+        "faction_id_candidate": 5,
+        "land": 20,
+        "commerce": 20,
+        "population": 18000,
+        "control": 45,
+        "officer_slots": [
+          152,
+          199,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 200,
+        "officers": [
+          {
+            "id": 152,
+            "name": null,
+            "stamina": 40,
+            "intelligence": 97,
+            "martial": 18,
+            "virtue": 66,
+            "loyalty": 93,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 500
+          },
+          {
+            "id": 199,
+            "name": null,
+            "stamina": 58,
+            "intelligence": 91,
+            "martial": 33,
+            "virtue": 76,
+            "loyalty": 82,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 400
+          }
+        ]
+      },
+      "neighbors": [
+        22,
+        25,
+        26,
+        28
+      ],
+      "pos": [
+        0.34375,
+        0.65
+      ]
+    },
+    {
+      "id": 28,
+      "name": "云南",
+      "owner": 6,
+      "gold": 180,
+      "grain": 390,
+      "troops": 900,
+      "development": 2,
+      "general": "武将 #41",
+      "ability": 76,
+      "reference": {
+        "rom_file_offset": 11020,
+        "flags_raw": 133,
+        "faction_id_candidate": 5,
+        "land": 20,
+        "commerce": 15,
+        "population": 16000,
+        "control": 40,
+        "officer_slots": [
+          83,
+          41,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 180,
+        "officers": [
+          {
+            "id": 83,
+            "name": null,
+            "stamina": 63,
+            "intelligence": 52,
+            "martial": 43,
+            "virtue": 58,
+            "loyalty": 68,
+            "infantry": 0,
+            "cavalry": 100,
+            "archers": 400
+          },
+          {
+            "id": 41,
+            "name": null,
+            "stamina": 95,
+            "intelligence": 40,
+            "martial": 76,
+            "virtue": 39,
+            "loyalty": 83,
+            "infantry": 0,
+            "cavalry": 200,
+            "archers": 200
+          }
+        ]
+      },
+      "neighbors": [
+        19,
+        26,
+        27,
+        29
+      ],
+      "pos": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "id": 29,
+      "name": "永昌",
+      "owner": 6,
+      "gold": 170,
+      "grain": 390,
+      "troops": 900,
+      "development": 1,
+      "general": "武将 #19",
+      "ability": 31,
+      "reference": {
+        "rom_file_offset": 11056,
+        "flags_raw": 133,
+        "faction_id_candidate": 5,
+        "land": 15,
+        "commerce": 20,
+        "population": 15000,
+        "control": 40,
+        "officer_slots": [
+          19,
+          231,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "gold": 170,
+        "officers": [
+          {
+            "id": 19,
+            "name": null,
+            "stamina": 62,
+            "intelligence": 48,
+            "martial": 31,
+            "virtue": 46,
+            "loyalty": 30,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 400
+          },
+          {
+            "id": 231,
+            "name": null,
+            "stamina": 45,
+            "intelligence": 77,
+            "martial": 21,
+            "virtue": 80,
+            "loyalty": 72,
+            "infantry": 0,
+            "cavalry": 0,
+            "archers": 500
+          }
+        ]
+      },
+      "neighbors": [
+        26,
+        28
+      ],
+      "pos": [
+        0.09375,
+        0.75
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Set ZHONGYUAN_MINGW_ROOT to an extracted MinGW /usr directory, or use PATH.
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR x86_64)
+if(DEFINED ENV{ZHONGYUAN_MINGW_ROOT})
+    set(_mingw_bin "$ENV{ZHONGYUAN_MINGW_ROOT}/bin/")
+endif()
+set(CMAKE_C_COMPILER "${_mingw_bin}x86_64-w64-mingw32-gcc-posix")
+set(CMAKE_CXX_COMPILER "${_mingw_bin}x86_64-w64-mingw32-g++-posix")
+set(CMAKE_RC_COMPILER "${_mingw_bin}x86_64-w64-mingw32-windres")
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)

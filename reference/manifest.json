@@ -1,0 +1,16 @@
+{
+  "schema": "reference-version-v1",
+  "local_path": "/home/ycww/下载/三国志Ⅰ--中原之霸者(中文版).nes",
+  "file_name": "三国志Ⅰ--中原之霸者(中文版).nes",
+  "size": 393232,
+  "sha256": "9658ef6e04fa725bd52c326745768abeae72179b4ecc882e0b7ceb4ff7484959",
+  "crc32": "b0cf9573",
+  "ines_header": "4e45531a082033100000000000000000",
+  "mapper": 19,
+  "prg_bytes": 131072,
+  "chr_bytes": 262144,
+  "status": "locked_to_user_supplied_chinese_ROM",
+  "original_file_modified": false,
+  "evidence": "reference/local/",
+  "emulation_is_reference_only": true
+}

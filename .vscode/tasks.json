@@ -1,0 +1,102 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "C++: configure",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "-S",
+        "${workspaceFolder}",
+        "-B",
+        "${workspaceFolder}/build",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "C++: build",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "${workspaceFolder}/build",
+        "--config",
+        "Debug",
+        "--parallel",
+        "4"
+      ],
+      "dependsOn": "C++: configure",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "C++: test",
+      "type": "process",
+      "command": "ctest",
+      "args": [
+        "--test-dir",
+        "${workspaceFolder}/build",
+        "-C",
+        "Debug",
+        "--output-on-failure"
+      ],
+      "dependsOn": "C++: build",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Game: run Linux",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/start-linux.sh"
+      ],
+      "dependsOn": "C++: build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Game: integration tests Linux",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/start-linux.sh",
+        "--headless",
+        "--script",
+        "res://tests/native_integration.gd"
+      ],
+      "dependsOn": "C++: build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Original: inspect ROM data",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/start-linux.sh",
+        "res://reference_data.tscn"
+      ],
+      "dependsOn": "C++: build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Original: native campaign integration tests",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/start-linux.sh",
+        "--headless",
+        "--script",
+        "res://tests/original_campaign.gd"
+      ],
+      "dependsOn": "C++: build",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "configurations": [{"name":"CMake","compileCommands":"${workspaceFolder}/build/compile_commands.json","cppStandard":"c++17","includePath":["${workspaceFolder}/native/include","${workspaceFolder}/native/vendor"]}],
+  "version": 4
+}

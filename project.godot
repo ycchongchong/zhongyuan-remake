@@ -1,0 +1,22 @@
+; Godot 4 desktop prototype
+config_version=5
+
+[application]
+config/name="中原 · 三十城争霸"
+run/main_scene="res://opening.tscn"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+
+[autoload]
+OriginalSound="*res://scripts/original_audio.gd"
+
+[display]
+window/size/viewport_width=1200
+window/size/viewport_height=760
+window/size/window_width_override=1200
+window/size/window_height_override=760
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.055, 0.075, 0.08, 1)

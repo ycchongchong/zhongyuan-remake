@@ -1,0 +1,9 @@
+[configuration]
+entry_symbol = "zhongyuan_library_init"
+compatibility_minimum = "4.5"
+reloadable = false
+
+[libraries]
+linux.x86_64 = "res://bin/zhongyuan_core.so"
+windows.x86_64 = "res://bin/zhongyuan_core.dll"
+macos = "res://bin/zhongyuan_core.dylib"
