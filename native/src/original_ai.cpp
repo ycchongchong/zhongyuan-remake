@@ -172,7 +172,17 @@ void OriginalAi::war(){
         if(select){minimum=replacement;source=city;target=neighbor;}
     }
     trace.push_back({{"point","target"},{"source",source},{"target",target},{"rng",cursor},{"budget",budget}});
-    if(source==255||target==255)throw std::runtime_error("Original AI has no selectable war target");
+    if(source==255||target==255){
+        // BFA9 leaves both choices FF when every adjacent roster exceeds the
+        // ten-officer selection threshold. C050 still enters reinforcement.
+        // With only the capital remaining there cannot be a donor: C0EC/C0F2
+        // advances the plan without spending budget or drawing random values.
+        // Retain the guard for unverified multi-city FF-pointer paths.
+        const int capital=seat();bool only_capital=capital>=0;
+        for(int c=0;c<30;++c)if(owner(c)==ruler&&c!=capital)only_capital=false;
+        if(source==255&&target==255&&only_capital)throw NextAction{};
+        throw std::runtime_error("Original AI has no selectable war target");
+    }
     const int capital=seat(),average=population_average();
     // C060-C181 gathers the strongest available officers at the attacking city.
     for(int loops=0;count(source)<count(target)+3;++loops){

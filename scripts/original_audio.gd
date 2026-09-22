@@ -80,8 +80,9 @@ func apply_music() -> void:
 
 func play_effect(cue: String) -> void:
 	if closing: return
-	# These menu effects share the original pulse channel and replace each other.
-	if cue not in ["confirm", "cursor", "text"]: return
+	# One captured effect per action. The PCM bank does not emulate the original
+	# per-channel music preemption; concurrent channel mixing remains a limitation.
+	if cue not in ["confirm", "cursor", "text", "clash_hit", "clash_bow"]: return
 	last_effect = cue
 	if not effect_pending:
 		effect_pending = true

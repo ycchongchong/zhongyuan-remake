@@ -24,6 +24,7 @@ void OriginalSession::start(int ruler,int difficulty,int second){
     OriginalState next(rom_,rom_.initial_sram(difficulty));
     next.set_players(ruler,second);next.begin_ruler_turn(0);
     state_=std::move(next);pending_=nullptr;search_=nullptr;clock_=0;random_=0;computer_scratch21_=-1;computer_argument_=-1;handover_argument_=-1;
+    track_argument_=true;persistent_argument_=0;
     ai_=nullptr;battle_=nullptr;ending_=nullptr;army_=nullptr;events_=Json::array();enter_turn();
 }
 void OriginalSession::enter_turn(){
@@ -59,6 +60,8 @@ Json OriginalSession::advance(){
         next.ai_["random_cursor"]=next.random_;
         auto result=next.state_.ai_phase(next.ai_);
         next.random_=result["random_cursor"];next.ai_=result;
+        // C6A8-C6C3 stores the winner of an automatic strategic battle.
+        if(result["battle_result"]==1||result["battle_result"]==2)next.remember_argument(result["winner"]);
         if(result["done"].get<bool>()){
             if(result["battle_result"]==3){next.battle_=result;next.phase_="battle";}
             else{
@@ -249,6 +252,7 @@ std::string OriginalSession::begin_tactics(){
     if(selected<0)return "没有可行动部队";
     computer_scratch21_=-1;computer_argument_=-1;handover_argument_=-1;
     battle_["tactics"]={{"deployment_sram",state_.sram()},{"points",state_.tactical_mobility()},{"selected",selected},{"moves",Json::array()}};
+    if(track_argument_)battle_["tactics"]["entry_argument"]=persistent_argument_;
     if(phase_=="battle"){
         Json context={{"side",0},{"points",0},{"round",0},{"carry",0},{"phase",5},{"counter",1},{"reason",0},{"status",Json(std::vector<int>(24,0))}};
         const auto boundary=state_.tactical_handover(context);
@@ -339,7 +343,8 @@ std::string OriginalSession::begin_clash(){
     clash["runtime"]=std::move(runtime);t["attack"]["stage"]="clash_orders";
     t["moves"].push_back({{"kind","begin_clash"}});*this=std::move(next);return {};
 }
-std::string OriginalSession::advance_clash(){
+std::string OriginalSession::advance_clash(std::string *sound){
+    if(sound)sound->clear();
     if(!battle_.is_object()||!battle_.contains("tactics")||!battle_["tactics"].contains("attack"))return "当前没有交锋";
     const auto stage=battle_["tactics"]["attack"]["stage"];
     if(stage!="clash_orders"&&stage!="clash_running")return "当前交锋需处理对话或尚未接入的后续流程";
@@ -370,7 +375,20 @@ std::string OriginalSession::advance_clash(){
         const bool human=clash["players"][side]!=0;
         runtime["counter"]=human?2:5;attack["stage"]=human?"surrender_confirm":"surrender_notice";
     }
-    t["moves"].push_back({{"kind","advance_clash"},{"cursor",cursor}});*this=std::move(next);return {};
+    // Original A56E starts descriptor 25 for melee; A578 starts 23 and 24
+    // for an arrow. A964 plays 25 again when that arrow hits an enemy.
+    // Generals entering the duel branch do not play either launch sound.
+    std::string cue;
+    if(resume["global_phase"]==10&&resume["phase"]==4&&resume["counter"]==1&&
+       runtime["global_phase"]==10&&runtime["phase"]==4){
+        if(runtime["counter"]==3)cue="clash_hit";
+        else if(runtime["counter"]==6)cue="clash_bow";
+    }
+    if(resume["global_phase"]==10&&resume["phase"]==4&&resume["counter"]==7&&
+       runtime["global_phase"]==10&&runtime["phase"]==4&&runtime["counter"]==3)cue="clash_hit";
+    t["moves"].push_back({{"kind","advance_clash"},{"cursor",cursor}});*this=std::move(next);
+    if(sound)*sound=std::move(cue);
+    return {};
 }
 std::string OriginalSession::resume_clash_strategy(){
     if(!battle_.is_object()||!battle_.contains("tactics")||!battle_["tactics"].contains("attack"))return "当前没有待继续的电脑军令";
@@ -645,9 +663,11 @@ Json OriginalSession::finish_search(bool accept){
     search_=nullptr;return result;
 }
 Json OriginalSession::save() const {
-    return {{"format","native-original-v2"},{"rom_crc32",OriginalRom::EXPECTED_CRC32},
+    Json result={{"format",track_argument_?"native-original-v3":"native-original-v2"},{"rom_crc32",OriginalRom::EXPECTED_CRC32},
         {"sram",state_.sram()},{"frame_counter",clock_},{"random_cursor",random_},{"pending_development",pending_},{"pending_search",search_},
         {"phase",phase_},{"ai",ai_},{"battle",battle_},{"ending",ending_},{"events",events_},{"pending_army",army_}};
+    if(track_argument_)result["command_argument"]=persistent_argument_;
+    return result;
 }
 std::string OriginalSession::recruit(int city,int hundreds){
     if(auto error=command_error();!error.empty())return error;
@@ -660,7 +680,11 @@ std::string OriginalSession::assign_troops(int officer,int hundreds){
 }
 std::string OriginalSession::restore(const Json &data){
     try{
-        if(!data.is_object()||(data.at("format")!="native-original-v1"&&data.at("format")!="native-original-v2")||data.at("rom_crc32")!=OriginalRom::EXPECTED_CRC32)return "存档版本或参考游戏不匹配";
+        if(!data.is_object()||(data.at("format")!="native-original-v1"&&data.at("format")!="native-original-v2"&&data.at("format")!="native-original-v3")||data.at("rom_crc32")!=OriginalRom::EXPECTED_CRC32)return "存档版本或参考游戏不匹配";
+        const bool tracked=data.at("format")=="native-original-v3";
+        const auto valid_argument=[](const Json &v){return v.is_number_integer()&&v>=0&&v<=255;};
+        if(tracked&&(!data.contains("command_argument")||!valid_argument(data["command_argument"])))return "无效原版命令暂存";
+        if(!tracked&&data.contains("command_argument"))return "旧版存档不能附带原版命令暂存";
         // Validate the immutable deployment boundary through the legacy path,
         // then replay commands (legacy field name "moves") to verify all effects.
         if(data.contains("battle")&&data["battle"].is_object()&&data["battle"].contains("tactics")){
@@ -677,6 +701,10 @@ std::string OriginalSession::restore(const Json &data){
             }
             segments.push_back(&t["moves"]);
             auto base=data;base["sram"]=t["deployment_sram"];base["battle"].erase("tactics");
+            if(tracked){
+                if(!t.contains("entry_argument")||!valid_argument(t["entry_argument"]))return "无效战场初始命令暂存";
+                base["command_argument"]=t["entry_argument"];
+            }
             // Strategic AI retains its invasion-entry RNG while tactical events advance the live cursor.
             if(base.at("phase")=="battle")base["random_cursor"]=base.at("ai").at("random_cursor");
             auto next=*this;auto error=next.restore(base);if(!error.empty())return error;
@@ -863,7 +891,7 @@ std::string OriginalSession::restore(const Json &data){
             }else if(!search.at("candidate").is_null())return "无效搜索对象";
         }
         std::string phase="player_commands";Json ai=nullptr,battle=nullptr,ending=nullptr,events=Json::array();
-        if(data.at("format")=="native-original-v2"){
+        if(data.at("format")!="native-original-v1"){
             phase=data.at("phase").get<std::string>();ai=data.at("ai");battle=data.at("battle");ending=data.at("ending");events=data.at("events");
             if(phase!="player_commands"&&phase!="ai_turn"&&phase!="battle"&&phase!="expedition"&&phase!="ending")return "无效回合阶段";
             if(!events.is_array()||events.size()>64)return "无效回合记录";
@@ -956,6 +984,7 @@ std::string OriginalSession::restore(const Json &data){
             if(phase!="player_commands"||!pending.is_null()||!search.is_null()||(candidate.sram()[city*36]&7)!=candidate.sram()[0xd8b])return "无效征兵编成状态";
         }
         computer_scratch21_=-1;computer_argument_=-1;handover_argument_=-1;
+        track_argument_=tracked;persistent_argument_=tracked?data["command_argument"].get<int>():-1;
         state_=std::move(candidate);pending_=std::move(pending);search_=std::move(search);clock_=clock;random_=random;army_=std::move(army);
         phase_=phase;ai_=std::move(ai);battle_=std::move(battle);ending_=std::move(ending);events_=std::move(events);return {};
     }catch(const std::exception&){return "存档内容不完整或已损坏";}

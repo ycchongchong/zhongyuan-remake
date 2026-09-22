@@ -58,6 +58,26 @@ func run():
 		starts = sound.music_starts
 		scene.refresh(); scene.refresh()
 		check(sound.music_starts == starts and scene.native.session_snapshot() == before, "repeated audio refresh preserves playback and native state")
+	var emitted: Array[String] = []
+	var listener = func(cue: String): emitted.append(cue)
+	scene.native.battle_effect.connect(listener)
+	for row in [["clash_hit", "clash_hit"], ["clash_bow", "clash_bow"], ["arrow-impact", "clash_hit"]]:
+		var cue: String = row[1]
+		var effects_before: int = sound.effect_starts
+		check(scene.native.load_session("res://tests/audio-%s.json" % row[0]).is_empty(), "restore " + row[0] + " sound boundary")
+		scene.refresh(); scene.refresh()
+		await process_frame
+		check(emitted.is_empty() and sound.effect_starts == effects_before, "restore and refresh do not replay battle effects")
+		check(scene.native.advance_clash().is_empty() and emitted == [cue], "native committed attack emits " + cue)
+		await process_frame
+		check(sound.effect_starts == effects_before + 1 and sound.effect.stream == sound.stream_for(cue), "campaign plays exactly one captured " + cue)
+		check(scene.native.advance_clash().is_empty() and emitted == [cue], "continuing the same attack remains silent")
+		var path = "user://audio-effect-roundtrip.json"
+		check(scene.native.save_session(path).is_empty() and scene.native.load_session(path).is_empty() and emitted == [cue], "strict history replay does not emit launch signals")
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+		emitted.clear()
+	check(scene.native.start_session(4, 0).is_empty() and not scene.native.advance_clash().is_empty() and emitted.is_empty(), "rejected battle action emits no signal")
+	scene.native.battle_effect.disconnect(listener)
 	scene.return_to_title()
 	await scene_changed
 	await process_frame

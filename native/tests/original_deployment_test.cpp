@@ -535,7 +535,7 @@ int main(int argc,char **argv){try{
     check(session.confirm_deployment().empty(),"Confirm final attacker");save=session.save();
     check(save["battle"]["deployment"]["current"]==-1&&restored.restore(save).empty(),"Completed deployment survives save");
     check(!session.confirm_deployment().empty()&&!session.end_turn().empty()&&session.save()==save,"No repeated confirm or skipping unfinished combat");
-    auto controlled=before;controlled["format"]="native-original-v1";controlled["sram"]=read(base+"expedition-2-before.bin");
+    auto controlled=before;controlled["format"]="native-original-v1";controlled.erase("command_argument");controlled["sram"]=read(base+"expedition-2-before.bin");
     check(session.restore(controlled).empty(),"Three-unit controlled campaign");
     check(!session.dispatch_expedition(13,12,{143,144,145},143).contains("error")&&session.prepare_deployment().empty(),"Three attackers enter deployment");
     for(int slot=0;slot<3;++slot){

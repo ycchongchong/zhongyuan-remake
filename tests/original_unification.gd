@@ -23,8 +23,8 @@ func run():
 		check(scene.ending_report.dialog_text.contains("统治度：%d" % int(before.unification.score)) and scene.ending_text.text==scene.ending_report.dialog_text,"report displays native score and consistent text")
 		var picture:Image=scene.ending_picture.texture.get_image()
 		picture.convert(Image.FORMAT_RGB8)
-		var hash=HashingContext.new();hash.start(HashingContext.HASH_SHA256);hash.update(picture.get_data())
-		check(picture.get_size()==Vector2i(144,96) and hash.finish().hex_encode()==assets.paintings[str(variant)].rgb_sha256,"all painting pixels match original capture")
+		var hash=HashingContext.new();hash.start(HashingContext.HASH_SHA256);hash.update(picture.get_region(Rect2i(56,40,144,96)).get_data())
+		check(picture.get_size()==Vector2i(256,240) and hash.finish().hex_encode()==assets.paintings[str(variant)].rgb_sha256,"native full score screen preserves all original painting pixels")
 		check(sound.current_cue=="unification_"+str(variant) and sound.music.playing,"matching original score plays")
 		var starts:int=sound.music_starts
 		scene.ending_report.hide();scene.refresh();scene.ending_button.pressed.emit();scene.refresh()
@@ -32,6 +32,9 @@ func run():
 		scene._process(1.0)
 		check(scene.native.session_snapshot()==before,"viewing ending leaves native state and clock unchanged")
 		check(scene.end_button.disabled and scene.expedition_button.disabled and scene.orders_button.disabled,"unification locks further gameplay commands")
+		if "--capture-ending" in OS.get_cmdline_user_args():
+			await process_frame;await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("user://unification-full-%d.png" % variant)
 		var save_path="user://unification-ui-test.json"
 		check(scene.native.save_session(save_path).is_empty() and scene.native.load_session(save_path).is_empty() and scene.native.session_snapshot()==before,"unification save/load preserves outcome and score")
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))

@@ -61,6 +61,7 @@ std::string OriginalSession::advance_computer_attack(){
     }else if(stage=="strategy_check"){
         auto decision=next.state_.tactical_ai_strategy(next.battle_["target"],ai["plan"]["slot"],t["points"],t["status"],next.random_,false,nullptr,128,t["round"]);
         if(decision.contains("error"))return decision["error"];
+        if(decision["kind"]=="strategy")next.remember_argument(decision["argument"]);
         ai["stage"]=decision["kind"]=="strategy"?"strategy_execute":"motion";ai["strategy"]=std::move(decision);
     }else if(stage=="strategy_execute"){
         const auto &decision=ai["strategy"];const int cost=rom_.tactical_strategy_tables()["cost"][decision["strategy"].get<int>()];
@@ -78,6 +79,7 @@ std::string OriginalSession::advance_computer_attack(){
         if(decision.contains("error"))return decision["error"];
         if(decision["kind"]=="scan"){ai["motion"]=std::move(decision);ai["stage"]="scan";}
         else if(decision["kind"]=="move"||decision["kind"]=="attack"){
+            next.remember_argument(decision["direction"]);
             const int directions[]={3,2,1,0},direction=directions[decision["direction"].get<int>()];int points=t["points"];
             if(decision["kind"]=="move"){
                 if(auto error=next.state_.tactical_step(slot,direction,points,128);!error.empty())return error;

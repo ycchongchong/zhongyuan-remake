@@ -9,6 +9,8 @@ var picture: Texture2D
 var hint: Label
 var message: AcceptDialog
 var transitioning = false
+const SaveSlots = preload("res://scripts/save_slots.gd")
+var save_slots: SaveSlots
 const PRESENTATION_DIRECTORY = "res://assets/original/presentation/"
 var presentations: Dictionary = {}
 var presentation_choices: Dictionary = {}
@@ -38,6 +40,9 @@ func _ready() -> void:
 	message.title = "重制进度"
 	message.ok_button_text = "返回"
 	add_child(message)
+	save_slots = SaveSlots.new()
+	add_child(save_slots)
+	save_slots.slot_chosen.connect(func(path:String): start_game(true,path))
 	OriginalSound.add_mute_button(self, Vector2(36, 24))
 	refresh()
 	if "--capture" in OS.get_cmdline_user_args():
@@ -106,7 +111,7 @@ func choice_texture() -> Texture2D:
 	return presentation_texture(presentation_choices[key].file)
 
 func _process(delta:float) -> void:
-	if transitioning or state==null:return
+	if transitioning or state==null or (save_slots != null and save_slots.visible):return
 	frame_remainder+=maxf(0.0,delta)*60.0
 	var frames:int=mini(int(frame_remainder),2147483647)
 	if frames<=0:return
@@ -136,7 +141,7 @@ func triangle(at: Vector2, color: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([ORIGIN+at*SCALE,ORIGIN+(at+Vector2(0,7))*SCALE,ORIGIN+(at+Vector2(5,3))*SCALE]),color)
 
 func press(key: String) -> void:
-	if transitioning or message.visible: return
+	if transitioning or message.visible or save_slots.visible: return
 	if state.screen=="quiz" and key in ["LEFT","RIGHT"] and not choice_ready():
 		model.tick(int(presentations[presentation_clip].loop_start)-int(state.presentation_frame))
 		presented_frame=int(model.snapshot().presentation_frame)
@@ -145,13 +150,13 @@ func press(key: String) -> void:
 	var result: String = model.press(key)
 	OriginalSound.opening_input(before, model.snapshot(), key)
 	if result == "start": start_game(false)
-	elif result == "continue": start_game(true)
+	elif result == "continue": save_slots.show_slots(false)
 	refresh()
 
-func start_game(restore_save: bool) -> void:
+func start_game(restore_save: bool, save_path: String = SaveSlots.PATHS[0]) -> void:
 	var scene = load("res://original_campaign.tscn").instantiate()
 	var selected = model.snapshot()
-	var error: String = scene.initialize(maxi(0,int(selected.first_ruler)),int(selected.difficulty),restore_save,int(selected.second_ruler) if int(selected.player_count)==2 else -1)
+	var error: String = scene.initialize(maxi(0,int(selected.first_ruler)),int(selected.difficulty),restore_save,int(selected.second_ruler) if int(selected.player_count)==2 else -1,save_path)
 	if not error.is_empty():
 		scene.free()
 		message.dialog_text = error
@@ -163,7 +168,7 @@ func start_game(restore_save: bool) -> void:
 	queue_free()
 
 func _input(event: InputEvent) -> void:
-	if message.visible: return
+	if message.visible or save_slots.visible: return
 	if event is InputEventKey and event.pressed and not event.echo:
 		var keys = {KEY_UP:"UP",KEY_DOWN:"DOWN",KEY_LEFT:"LEFT",KEY_RIGHT:"RIGHT",KEY_Z:"A",KEY_ENTER:"START",KEY_SPACE:"START",KEY_X:"B",KEY_ESCAPE:"B"}
 		if keys.has(event.keycode):

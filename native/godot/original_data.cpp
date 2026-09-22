@@ -1,4 +1,5 @@
 #include "original_data.hpp"
+#include "zhongyuan/save_file.hpp"
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/json.hpp>
 #include <godot_cpp/classes/dir_access.hpp>
@@ -13,6 +14,7 @@ template<class Action> String battle_action(zhongyuan::OriginalSession *session,
 }
 }
 void ZhongyuanOriginalData::_bind_methods() {
+    ADD_SIGNAL(MethodInfo("battle_effect",PropertyInfo(Variant::STRING,"cue")));
     ClassDB::bind_method(D_METHOD("load_rom","path"),&ZhongyuanOriginalData::load_rom);
     ClassDB::bind_method(D_METHOD("town_image","faction"),&ZhongyuanOriginalData::town_image);
     ClassDB::bind_method(D_METHOD("name_image","is_officer","index"),&ZhongyuanOriginalData::name_image);
@@ -98,6 +100,7 @@ void ZhongyuanOriginalData::_bind_methods() {
     ClassDB::bind_method(D_METHOD("execute_command","city","kind","args"),&ZhongyuanOriginalData::execute_command);
     ClassDB::bind_method(D_METHOD("battlefield_image","city"),&ZhongyuanOriginalData::battlefield_image);
     ClassDB::bind_method(D_METHOD("tactical_image"),&ZhongyuanOriginalData::tactical_image);
+    ClassDB::bind_method(D_METHOD("unification_image"),&ZhongyuanOriginalData::unification_image);
     ClassDB::bind_method(D_METHOD("music_cue"),&ZhongyuanOriginalData::music_cue);
     ClassDB::bind_method(D_METHOD("recruit","city","hundreds"),&ZhongyuanOriginalData::recruit);
     ClassDB::bind_method(D_METHOD("assign_troops","officer","hundreds"),&ZhongyuanOriginalData::assign_troops);
@@ -184,7 +187,12 @@ String ZhongyuanOriginalData::begin_duel(){return battle_action(session_.get(),[
 String ZhongyuanOriginalData::choose_duel_command(int command){return battle_action(session_.get(),[&](auto &game){return game.choose_duel_command(command);});}
 String ZhongyuanOriginalData::answer_duel_surrender(bool accept){return battle_action(session_.get(),[&](auto &game){return game.answer_duel_surrender(accept);});}
 String ZhongyuanOriginalData::advance_duel(){return battle_action(session_.get(),[&](auto &game){return game.advance_duel();});}
-String ZhongyuanOriginalData::advance_clash(){return battle_action(session_.get(),[&](auto &game){return game.advance_clash();});}
+String ZhongyuanOriginalData::advance_clash(){
+    std::string sound;
+    const auto error=battle_action(session_.get(),[&](auto &game){return game.advance_clash(&sound);});
+    if(error.is_empty()&&!sound.empty())emit_signal("battle_effect",String::utf8(sound.c_str()));
+    return error;
+}
 String ZhongyuanOriginalData::resume_clash_strategy(){return battle_action(session_.get(),[&](auto &game){return game.resume_clash_strategy();});}
 String ZhongyuanOriginalData::recover_clash_strategy(){return battle_action(session_.get(),[&](auto &game){return game.recover_clash_strategy();});}
 String ZhongyuanOriginalData::begin_clash(){return battle_action(session_.get(),[&](auto &game){return game.begin_clash();});}
@@ -269,7 +277,7 @@ String ZhongyuanOriginalData::save_session(const String &path){
     Ref<FileAccess> file=FileAccess::open(temporary,FileAccess::WRITE);if(file.is_null())return "无法写入存档";
     file->store_string(String::utf8(data.c_str()));file->flush();const Error error=file->get_error();file->close();
     if(error!=OK){DirAccess::remove_absolute(temporary);return "写入存档失败";}
-    if(DirAccess::rename_absolute(temporary,absolute)!=OK){DirAccess::remove_absolute(temporary);return "替换存档失败";}
+    if(zhongyuan::replace_save_file(std::filesystem::u8path(temporary.utf8().get_data()),std::filesystem::u8path(absolute.utf8().get_data()))){DirAccess::remove_absolute(temporary);return "替换存档失败";}
     return {};
 }
 String ZhongyuanOriginalData::load_session(const String &path){
@@ -336,5 +344,16 @@ Ref<Image> ZhongyuanOriginalData::name_image(bool is_officer,int index) const {
         rgba.set(i*4+3,source[i]==0 ? 255 : 0);
     }
     return Image::create_from_data(48,16,false,Image::FORMAT_RGBA8,rgba);
+}
+Ref<Image> ZhongyuanOriginalData::unification_image() const {
+    if(!session_||!rom_)return Ref<Image>();
+    try {
+        const auto state=session_->snapshot();
+        if(state["phase"]!="ending"||!state.contains("unification")||!state["unification"].contains("score"))return Ref<Image>();
+        const auto source=rom_->unification_score_rgb(state["year"],state["month"],state["sram"][0xd88],state["ending"]["winner"],state["unification"]["score"]);
+        PackedByteArray rgb;rgb.resize(source.size());
+        std::copy(source.begin(),source.end(),rgb.ptrw());
+        return Image::create_from_data(256,240,false,Image::FORMAT_RGB8,rgb);
+    } catch(const std::exception &) {return Ref<Image>();}
 }
 }

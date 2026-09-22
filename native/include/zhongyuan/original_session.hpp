@@ -79,7 +79,9 @@ public:
     std::string cancel_tactical_attack();
     std::string confirm_tactical_attack();
     std::string begin_clash();
-    std::string advance_clash();
+    // Transient presentation event, emitted only for a committed live action.
+    // Replay callers omit this output; sound never enters the save or RNG state.
+    std::string advance_clash(std::string *sound=nullptr);
     std::string resume_clash_strategy();
     std::string recover_clash_strategy();
     std::string advance_clash_retreat();
@@ -129,6 +131,11 @@ private:
     int computer_scratch21_=-1;
     int computer_argument_=-1; // Replayed movement argument; cleared at untracked boundaries.
     int handover_argument_=-1; // Verified pre-handover byte, reconstructed by replay.
+    // v3 tracks original CPU $06A8 across strategic/tactical boundaries. Legacy
+    // saves lack this history and retain their conservative replay behaviour.
+    bool track_argument_=true;
+    int persistent_argument_=0;
+    void remember_argument(int argument){if(track_argument_)persistent_argument_=argument;}
     std::string phase_="player_commands";
     Json ai_=nullptr,battle_=nullptr,ending_=nullptr;
     Json army_=nullptr;

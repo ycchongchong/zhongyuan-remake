@@ -1,11 +1,15 @@
 extends Control
 ## UI only: mutable original records, proposals and command effects live in C++.
 const SAVE = "user://campaign-native-original.json"
+const SaveSlots = preload("res://scripts/save_slots.gd")
+var save_slots: SaveSlots
+var save_origin = ""
 const RULERS = ["袁绍","马腾","曹操","孙权","刘备","刘璋"]
 const KINDS = ["土地","商业","人口"]
 var native = ZhongyuanOriginalData.new()
 var state: Dictionary = {}
 var initialized = false
+var restored_session = false
 var selected = 13
 var chosen: Array[int] = []
 var moving = false
@@ -138,7 +142,7 @@ var deployment_confirm:Button
 var deployment_arrows:Array[Button]=[]
 
 
-func initialize(ruler: int, difficulty: int, restore_saved := false, second := -1) -> String:
+func initialize(ruler: int, difficulty: int, restore_saved := false, second := -1, save_path: String = SAVE) -> String:
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://reference/manifest.json"))
 	var path: String = manifest.get("local_path", "") if manifest is Dictionary else ""
 	var args = OS.get_cmdline_user_args()
@@ -146,15 +150,20 @@ func initialize(ruler: int, difficulty: int, restore_saved := false, second := -
 		if args[i] == "--rom": path = args[i+1]
 	var imported: Dictionary = native.load_rom(path)
 	if imported.has("error"): return "无法读取指定原版文件："+str(imported.error)
-	var error: String = native.load_session(SAVE) if restore_saved else native.start_two_player_session(ruler,second,difficulty) if second>=0 else native.start_session(ruler,difficulty)
+	var error: String = native.load_session(save_path) if restore_saved else native.start_two_player_session(ruler,second,difficulty) if second>=0 else native.start_session(ruler,difficulty)
 	if not error.is_empty(): return error
 	state = native.session_snapshot()
 	selected = int(state.rulers[int(state.player)].seat)
 	initialized = true
+	restored_session = restore_saved
 	return ""
+
+func _on_battle_effect(cue: String) -> void:
+	if not is_queued_for_deletion(): OriginalSound.play_effect(cue)
 
 func _ready() -> void:
 	OriginalSound.attach_scene(self)
+	native.battle_effect.connect(_on_battle_effect)
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var theme_data = Theme.new()
 	theme_data.default_font = load("res://assets/chinese.ttf")
@@ -182,7 +191,7 @@ func _ready() -> void:
 	var ending_layout=VBoxContainer.new()
 	ending_report.add_child(ending_layout)
 	ending_picture=TextureRect.new()
-	ending_picture.custom_minimum_size=Vector2(432,288)
+	ending_picture.custom_minimum_size=Vector2(512,480)
 	ending_picture.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
 	ending_picture.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	ending_picture.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
@@ -194,8 +203,12 @@ func _ready() -> void:
 	ending_layout.add_child(ending_text)
 	ending_button=button_at("结局报告",Vector2(680,70),Vector2(125,40),show_ending_report)
 	ending_button.hide()
-	button_at("存档",Vector2(900,25),Vector2(78,40),save_game)
-	button_at("读档",Vector2(990,25),Vector2(78,40),load_game)
+	save_slots = SaveSlots.new()
+	add_child(save_slots)
+	save_slots.slot_chosen.connect(use_save_slot)
+	save_slots.canceled.connect(restore_save_origin)
+	button_at("存档",Vector2(900,25),Vector2(78,40),show_save_slots.bind(true))
+	button_at("读档",Vector2(990,25),Vector2(78,40),show_save_slots.bind(false))
 	button_at("标题",Vector2(1080,25),Vector2(78,40),return_to_title)
 	label_at("原版战局 · 城池与武将",Vector2(36,79),16)
 	phase_label = label_at("",Vector2(450,79),16)
@@ -300,7 +313,9 @@ func _ready() -> void:
 	kinds.id_pressed.connect(prepare_development)
 	add_child(kinds)
 	notice = AcceptDialog.new()
-	notice.title = "重制进度"
+	notice.title = "提示"
+	notice.confirmed.connect(restore_save_origin)
+	notice.canceled.connect(restore_save_origin)
 	add_child(notice)
 	officer_book = Window.new()
 	officer_book.title = "武将名册 · 241 人"
@@ -335,7 +350,7 @@ func _ready() -> void:
 			status.text = error
 			return
 	for c in state.cities: city_list.add_item(c.name,int(c.id))
-	select_city(selected)
+	select_city(selected, not restored_session)
 	resume_pending()
 
 func label_at(value: String, at: Vector2, font_size: int) -> Label:
@@ -369,7 +384,7 @@ func draw_map(canvas: CanvasItem) -> void:
 	canvas.draw_line(cross-Vector2(9,0),cross+Vector2(9,0),Color.WHITE,2)
 	canvas.draw_line(cross-Vector2(0,9),cross+Vector2(0,9),Color.WHITE,2)
 
-func select_city(id: int) -> void:
+func select_city(id: int, visit: bool = true) -> void:
 	if not initialized: return
 	if moving and id!=selected:
 		var error: String = native.move_officers(selected,id,chosen)
@@ -385,6 +400,7 @@ func select_city(id: int) -> void:
 			chosen.append(int(officer))
 			break
 	refresh()
+	if not visit: return
 	var report: Dictionary = native.visit_city(id)
 	if report.has("error"): status.text=report.error
 	elif not report.is_empty(): show_search_report(report)
@@ -472,13 +488,13 @@ func show_ending_report() -> void:
 		var summary:Dictionary=state.unification
 		if summary.has("score") and summary.has("variant"):
 			text+="\n统治度：%d　驻城武将：%d" % [int(summary.score),int(summary.residents)]
-			var original=Image.load_from_file("res://assets/original/endings/%d.png" % int(summary.variant))
+			var original=native.unification_image()
 			if original!=null:
 				ending_picture.texture=ImageTexture.create_from_image(original)
 				ending_picture.show()
-	ending_report.dialog_text="%d 年 %d 月\n\n%s\n\n可查看终局地图、保存战局或返回标题。" % [state.year,state.month,text]
+	ending_report.dialog_text="%d 年 %d 月\n%s\n可查看终局地图、保存战局或返回标题。" % [state.year,state.month,text]
 	ending_text.text=ending_report.dialog_text
-	ending_report.popup_centered(Vector2i(580,560 if ending_picture.visible else 260))
+	ending_report.popup_centered(Vector2i(600,650 if ending_picture.visible else 260))
 
 func neighbor_names(c: Dictionary) -> String:
 	var items = PackedStringArray()
@@ -552,22 +568,60 @@ func finish_search(accept: bool) -> void:
 		status.text="武将已加入本城。" if result.joined else "武将未加入；城池满员、黄金不足或劝说失败均无法招募。"
 	refresh()
 
-func save_game() -> void:
-	var error: String = native.save_session(SAVE)
-	status.text = "原版战局已保存。" if error.is_empty() else error
+func show_save_slots(saving: bool) -> void:
+	clash_timer.stop()
+	clash_auto.text = "自动推进"
+	save_origin = "battle" if battle_details.visible else "ending" if ending_report.visible else ""
+	battle_details.hide()
+	ending_report.hide()
+	save_slots.show_slots(saving)
 
-func load_game() -> void:
-	var error: String = native.load_session(SAVE)
-	if not error.is_empty(): status.text=error;return
+func restore_save_origin() -> void:
+	save_slots.hide()
+	notice.hide()
+	var origin = save_origin
+	save_origin = ""
+	if origin == "battle" and state.phase in ["battle", "expedition"]: show_battle_details()
+	elif origin == "ending" and state.phase == "ending": show_ending_report()
+
+func use_save_slot(path: String) -> void:
+	if save_slots.saving:
+		if save_game(path):
+			restore_save_origin()
+			if battle_details.visible: battle_description.text += "\n战场进度已保存。"
+	else:
+		if load_game(path): save_origin = ""
+
+func save_game(path: String = SAVE) -> bool:
+	var error: String = native.save_session(path)
+	status.text = "原版战局已保存。" if error.is_empty() else error
+	if not error.is_empty():
+		notice.dialog_text = error + "。原有存档保持不变。"
+		notice.popup_centered(Vector2i(540, 170))
+	return error.is_empty()
+
+func load_game(path: String = SAVE) -> bool:
+	var error: String = native.load_session(path)
+	if not error.is_empty():
+		status.text=error
+		notice.dialog_text=error + "。当前战局保持不变。"
+		notice.popup_centered(Vector2i(540, 170))
+		return false
+	# Clear dialogs derived from the previous state before reopening pending work.
+	for dialog in [battle_details, ending_report, confirm, search_confirm, search_report, recruit_dialog, order_dialog, scout_dialog, expedition_dialog, army_dialog, notice, kinds, officer_book]: dialog.hide()
+	clash_timer.stop()
+	clash_auto.text="自动推进"
+	clock_remainder=0.0
 	moving=false
 	ai_paused=false
 	ending_seen=false
 	state=native.session_snapshot()
-	if state.phase=="player_commands": select_current_seat()
-	elif state.phase=="battle":select_city(int(state.battle.target))
-	else:select_city(selected)
+	if state.phase=="player_commands": select_current_seat(false)
+	elif state.phase=="battle":select_city(int(state.battle.target),false)
+	else:select_city(selected,false)
 	resume_pending()
 	status.text="已读取原版战局。"
+	return true
 
 func resume_pending() -> void:
 	if state.pending_army!=null:
@@ -1182,6 +1236,7 @@ func show_battle_details() -> void:
 				elif battle.tactics.computer.kind=="moved":
 					var move:Dictionary=battle.tactics.computer_plan
 					battle_description.text="电脑守军第 %d 队已补入空置城堡。\n消耗 %d 点机动力，剩余 %d。可继续电脑行动或保存进度。" % [int(move.slot)+1,int(move.points_before)-int(move.points_after),int(move.points_after)]
+					if move.get("blocked",false):battle_description.text="电脑守军第 %d 队机动力不足，未能补入城堡。\n位置和机动力保持不变，可继续电脑行动或保存进度。" % [int(move.slot)+1]
 			if time_limited and time_notice.has("speaker"):
 				battle_description.text+="\n%s的武将报告：战斗期限已到。" % RULERS[int(time_notice.faction)]
 			if withdrawal_result:
@@ -1276,16 +1331,16 @@ func show_battle_details() -> void:
 			elif clash_stage=="clash_result":
 				if attack.result.kind=="duel":
 					battle_description.text=("单挑投降已结算，武将已登记为俘虏。" if attack.result.outcome=="surrender" else "单挑败北已结算，部队已离场。")+"\n双方兵力已写回。\n"
-					battle_description.text+=("可返回战术行动。" if attack.result.can_continue else "最终战果处置尚未接入，请保存进度。")
+					battle_description.text+=("可返回战术行动。" if attack.result.can_continue else "此战果暂不能继续，请保存战局。")
 				elif attack.result.kind=="defeat":
 					battle_description.text="武将败北已结算，部队已离场，双方兵力已写回。\n"
-					battle_description.text+=("战术地图已恢复。" if attack.result.map_restored else "已进入原版君主战败阶段，现场已保留。")+"\n"+("可返回战术行动。" if attack.result.can_continue else "最终战果处置尚未接入，请保存进度。")
+					battle_description.text+=("战术地图已恢复。" if attack.result.map_restored else "已进入原版君主战败阶段，现场已保留。")+"\n"+("可返回战术行动。" if attack.result.can_continue else "此战果暂不能继续，请保存战局。")
 				elif attack.result.kind=="retreat":
 					battle_description.text="交锋撤离已结算，双方兵力已写回。\n"
 					if attack.result.defeated:battle_description.text+="撤离武将已失去战斗能力并离场。\n"
-					battle_description.text+=("战术地图已恢复。" if attack.result.map_restored else "已进入原版君主战败阶段，现场已保留。")+"\n"+("可返回战术行动。" if attack.result.can_continue else "最终战果处置尚未接入，请保存进度。")
+					battle_description.text+=("战术地图已恢复。" if attack.result.map_restored else "已进入原版君主战败阶段，现场已保留。")+"\n"+("可返回战术行动。" if attack.result.can_continue else "此战果暂不能继续，请保存战局。")
 				else:
-					battle_description.text="投降已结算，武将已进入战斗俘虏名册，战术地图已恢复。\n"+("可返回战术行动。" if attack.result.can_continue else "已触及主将离场或全军结果；最终战果处置尚未接入，请保存进度。")+"\n俘虏最终处置尚未接入，记录会随战局保留。"
+					battle_description.text="投降已结算，武将已进入战斗俘虏名册，战术地图已恢复。\n"+("可返回战术行动。" if attack.result.can_continue else "已触及主将离场或全军结果；此战果暂不能继续，请保存战局。")+"\n俘虏将在本场战斗结束时处理，记录会随战局保留。"
 			else:battle_description.text+="交战准备已完成，可进入交战军令查看双方部队与战场，或保存进度。\n可配置军令并推进交锋，随后处理伤亡、俘虏和战果。"
 		if battle.get("army_defeat_result_available",false):
 			battle_description.text="守军已全部离场，交锋伤亡已经结算。\n确认全军战果后，继续处理入城部队、俘虏和城池物资。"
@@ -1309,11 +1364,11 @@ func show_battle_details() -> void:
 			var player_number:int=1 if owner==(int(state.sram[0xd89])&7) else 2
 			if handover:battle_description.text="守城方部署完毕，请交给玩家%d（%s）。\n点击“进攻方接手布阵”或按 Enter 后开始。" % [player_number,RULERS[owner]]
 			else:battle_description.text="玩家%d（%s） · " % [player_number,RULERS[owner]]+battle_description.text
-		battle_description.text+="\n"+("电脑进攻方先行动，点击“进入电脑先攻”可推进选队、施计、移动与交战。" if state.phase=="battle" else "双方布阵完成后可移动及发起攻击；实时交战与战后结算尚未接入。")
+		battle_description.text+="\n"+("电脑进攻方先行动，点击“进入电脑先攻”可推进选队、施计、移动与交战。" if state.phase=="battle" else "双方布阵完成后可进入战术行动，移动、施计或攻击敌军。")
 	elif state.phase=="expedition":
-		battle_description.text="已出征 %d 名武将，支付 %d 金。\n可进入布阵，按原版区域逐将部署，并保存进度。\n实时交战与战后结算尚未接入。" % [battle.officers.size(),int(battle.cost)]
+		battle_description.text="已出征 %d 名武将，支付 %d 金。\n可进入布阵，按原版区域逐将部署，并保存进度。\n交战时可配置军令、推进交锋，并确认伤亡和战果。" % [battle.officers.size(),int(battle.cost)]
 	else:
-		battle_description.text="敌军来袭，请部署守城武将。\n守军全部确认后，电脑自动部署进攻部队。可保存布阵进度。\n实时交战和战后结算尚未接入。"
+		battle_description.text="敌军来袭，请部署守城武将。\n守军全部确认后，电脑自动部署进攻部队。可保存布阵进度。\n交战时可配置军令、推进交锋，并确认伤亡和战果。"
 	human_failure_controls.visible=tactical and battle.tactics.has("human_failure")
 	if human_failure_controls.visible:
 		var failure:Dictionary=battle.tactics.human_failure
@@ -1409,8 +1464,7 @@ func deployment_action(action:StringName) -> void:
 	elif action=="prepare":error=native.prepare_deployment()
 	elif action=="confirm":error=native.confirm_deployment()
 	elif action=="save":
-		error=native.save_session(SAVE)
-		battle_description.text+="\n"+("战场进度已保存。" if error.is_empty() else error)
+		show_save_slots(true)
 		return
 	elif state.battle.has("tactics"):error=native.move_tactical(int(state.battle.tactics.selected),int(str(action)))
 	else:error=native.move_deployment(int(str(action)))
@@ -1646,15 +1700,15 @@ func end_turn() -> void:
 	if state.phase=="player_commands": select_current_seat()
 	status.text="本回合结束。"
 
-func select_current_seat() -> void:
+func select_current_seat(visit: bool = true) -> void:
 	var ruler=int(state.current_ruler)
 	for c in state.cities:
 		if int(c.faction_id)==ruler and ruler in c.officer_slots:
-			select_city(int(c.id))
+			select_city(int(c.id),visit)
 			return
 	for c in state.cities:
 		if int(c.faction_id)==ruler:
-			select_city(int(c.id))
+			select_city(int(c.id),visit)
 			return
 
 func advance_ai() -> void:
@@ -1693,6 +1747,7 @@ func show_officers() -> void:
 	officer_book.popup_centered()
 
 func _process(delta: float) -> void:
+	if save_slots != null and (save_slots.visible or notice.visible): return
 	if initialized and state.phase!="ending":
 		clock_remainder+=delta*60.0
 		var frames=min(int(clock_remainder),3600)
@@ -1721,7 +1776,7 @@ func confirm_cursor() -> void:
 			return
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not initialized or ending_report.visible or confirm.visible or search_confirm.visible or search_report.visible or recruit_dialog.visible or order_dialog.visible or scout_dialog.visible or expedition_dialog.visible or battle_details.visible or army_dialog.visible or notice.visible or kinds.visible or officer_book.visible: return
+	if not initialized or save_slots.visible or ending_report.visible or confirm.visible or search_confirm.visible or search_report.visible or recruit_dialog.visible or order_dialog.visible or scout_dialog.visible or expedition_dialog.visible or battle_details.visible or army_dialog.visible or notice.visible or kinds.visible or officer_book.visible: return
 	var key = -1
 	if event is InputEventKey and event.pressed:
 		key=event.keycode

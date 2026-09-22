@@ -9,6 +9,8 @@ import subprocess
 import time
 
 COMPLETION = {
+    "original_natural_progress": "ORIGINAL NATURAL PROGRESS: 0 failures",
+    "original_save_slots": "ORIGINAL SAVE SLOTS: 0 failures",
     "original_unification": "ORIGINAL UNIFICATION: 0 failures",
     "original_audio_lifecycle": "ORIGINAL AUDIO LIFECYCLE: 0 failures",
     "original_quiz_input": "ORIGINAL QUIZ INPUT: 0 failures",

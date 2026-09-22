@@ -5,13 +5,20 @@
 #include <iostream>
 using namespace zhongyuan;
 std::vector<std::uint8_t> read(const std::string&p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
+// Compare the legacy gameplay oracle while checking v3 metadata separately.
+Json legacy_gameplay(Json saved){
+ if(saved.at("format")!="native-original-v3"||!saved.at("command_argument").is_number_integer())throw std::runtime_error("Missing v3 argument state");
+ saved["format"]="native-original-v2";saved.erase("command_argument");
+ if(saved["battle"].is_object()&&saved["battle"].contains("tactics"))saved["battle"]["tactics"].erase("entry_argument");
+ return saved;
+}
 int main(int argc,char **argv){if(argc!=2)return 1;OriginalRom rom(read(argv[1]));OriginalSession game(rom),loaded(rom);game.start(4,0,5);int battles=0, failures=0;
  auto fixture=[&](const std::string&name){std::ifstream f(std::string(ZHONGYUAN_PROJECT_DIR)+"/tests/natural-dual-"+name+".json");return Json::parse(f);};
 try{for(int step=0;step<7300;++step){const auto saved=game.save();const std::string phase=saved["phase"];std::string action,error;
  auto stop=[&](const std::string &why){throw std::runtime_error(why);};
  if(phase=="ending"){
   if(step!=7269||battles!=7||failures!=1||saved["ending"]["kind"]!="year_limit"||saved["sram"][0xd85]!=250||saved["sram"][0xd87]!=1)stop("Unexpected natural ending");
-  if(saved!=fixture("year-limit"))stop("Terminal fixture differs");
+  if(legacy_gameplay(saved)!=fixture("year-limit"))stop("Terminal fixture differs");
   auto e=loaded.restore(saved);if(!e.empty()||loaded.save()!=saved)stop("Terminal strict replay "+e);
   if(game.end_turn().empty())stop("Terminal player turn accepted");
   if(game.advance()["phase"]!="ending"||game.save()!=saved)stop("Terminal transition mutated state");
@@ -28,7 +35,7 @@ try{for(int step=0;step<7300;++step){const auto saved=game.save();const std::str
    const auto &t=b["tactics"];
    const bool failed_retreat=t.contains("last_retreat")&&!t["last_retreat"]["outcomes"].empty()&&!t["last_retreat"]["outcomes"][0].value("departed",false);
    if(t.contains("human_failure")){
-    if(!t["human_failure"]["can_continue"].get<bool>()||step!=3169||++failures!=1||t["human_failure"]["loser"]!=4||saved!=fixture("first-defeat"))return "Unexpected first player failure";
+    if(!t["human_failure"]["can_continue"].get<bool>()||step!=3169||++failures!=1||t["human_failure"]["loser"]!=4||legacy_gameplay(saved)!=fixture("first-defeat"))return "Unexpected first player failure";
     auto e=loaded.restore(saved);if(!e.empty()||loaded.save()!=saved)return "First player failure strict replay "+e;
     action="finish_human_failure";return s.finish_human_failure();
    }

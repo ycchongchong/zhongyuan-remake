@@ -21,6 +21,7 @@ TRACKS = {
     'clash_orders': [26, 27, 28], 'clash': [6, 7, 8],
     'duel': [9, 10, 11], 'battle_result': [12, 13, 14],
     'defeat': [63, 64, 65, 66], 'confirm': [16], 'cursor': [17], 'text': [19],
+    'clash_hit': [25], 'clash_bow': [23, 24],
     'unification_0': [104, 105, 106, 107, 108],
     'unification_1': [109, 110, 111, 112, 113],
     'unification_2': [100, 101, 102, 103, 114],

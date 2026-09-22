@@ -6,6 +6,13 @@
 #include <iostream>
 using namespace zhongyuan;
 std::vector<std::uint8_t> read(const std::string&p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
+// Compare the legacy gameplay oracle while checking v3 metadata separately.
+Json legacy_gameplay(Json saved){
+ if(saved.at("format")!="native-original-v3"||!saved.at("command_argument").is_number_integer())throw std::runtime_error("Missing v3 argument state");
+ saved["format"]="native-original-v2";saved.erase("command_argument");
+ if(saved["battle"].is_object()&&saved["battle"].contains("tactics"))saved["battle"]["tactics"].erase("entry_argument");
+ return saved;
+}
 int main(int argc,char **argv){if(argc!=2)return 1;OriginalRom rom(read(argv[1]));OriginalSession game(rom),loaded(rom);game.start(4,0);int battles=0;
 try{for(int step=0;step<2500;++step){const auto saved=game.save();const std::string phase=saved["phase"];std::string action,error;
  auto stop=[&](const std::string &why){throw std::runtime_error(why);};
@@ -64,7 +71,7 @@ try{for(int step=0;step<2500;++step){const auto saved=game.save();const std::str
    action="human_retreat";auto e=s.begin_tactical_retreat(t["selected"]);return e.empty()?s.confirm_tactical_retreat():e;
   });
  }else stop("Unhandled phase "+phase);
- if(error=="ACCEPTED terminal defeat"){auto e=loaded.restore(game.save());if(!e.empty()||loaded.save()!=game.save())stop("Terminal replay "+e);std::ifstream fixture(std::string(ZHONGYUAN_PROJECT_DIR)+"/tests/natural-campaign-defeat.json");if(game.save()!=Json::parse(fixture))stop("Natural defeat fixture differs");std::cout<<"PASS:2245 natural operations,three invasions,207/9 human defeat,checkpoint and final replay\n";return 0;}
+ if(error=="ACCEPTED terminal defeat"){auto e=loaded.restore(game.save());if(!e.empty()||loaded.save()!=game.save())stop("Terminal replay "+e);std::ifstream fixture(std::string(ZHONGYUAN_PROJECT_DIR)+"/tests/natural-campaign-defeat.json");if(legacy_gameplay(game.save())!=Json::parse(fixture))stop("Natural defeat fixture differs");std::cout<<"PASS:2245 natural operations,three invasions,207/9 human defeat,checkpoint and final replay\n";return 0;}
  if(!error.empty())stop(action+": "+error);
  if(step%1000==0){error=loaded.restore(game.save());if(!error.empty()||loaded.save()!=game.save())stop("Replay "+error);}
 }throw std::runtime_error("No defeat in2500 actions");}catch(const std::exception&e){std::cerr<<e.what()<<"\n";return 1;}}

@@ -95,10 +95,15 @@ std::string OriginalSession::plan_computer_tactics(bool reuse_unit){
     auto plan=next.state_.tactical_ai_fort(next.battle_["target"],t.value("computer_cursor",0),t["points"],t.value("status",Json(std::vector<int>(24,0))),reuse_unit);
     if(plan.contains("error"))return plan["error"];
     if(plan["kind"]=="move"){
-        next.computer_scratch21_=-1;next.computer_argument_=plan["direction"];
+        next.computer_scratch21_=-1;next.computer_argument_=plan["direction"];next.remember_argument(plan["direction"]);
         const int directions[]={3,2,1,0};int points=t["points"];
         const auto error=next.state_.tactical_step(plan["slot"],directions[plan["direction"].get<int>()],points,0);
-        if(!error.empty())return error;
+        if(!error.empty()){
+            if(error!="剩余机动力不足")return error;
+            // C886-C889 returns to assessment with unchanged mobility/position.
+            // The earlier fort-role assignment and emitted argument survive.
+            plan["blocked"]=true;
+        }
         plan["points_before"]=t["points"];plan["points_after"]=points;
         plan["destination"]=next.state_.sram()[0xdab+plan["slot"].get<int>()*2];
         t["points"]=points;t["selected"]=plan["slot"];t["computer_cursor"]=plan["slot"];t["computer"]["kind"]="moved";
@@ -116,7 +121,8 @@ std::string OriginalSession::evaluate_computer_strategy(){
     auto next=*this;auto &t=next.battle_["tactics"];const int cursor=next.random_;
     auto result=next.state_.tactical_ai_strategy(next.battle_["target"],t["computer_plan"]["slot"],t["points"],t.value("status",Json(std::vector<int>(24,0))),next.random_,false,&next.computer_scratch21_);
     if(result.contains("error"))return result["error"];
-    t["selected"]=result["slot"];t["computer_strategy"]=std::move(result);
+    t["selected"]=result["slot"];if(result["kind"]=="strategy")next.remember_argument(result["argument"]);
+    t["computer_strategy"]=std::move(result);
     t["moves"].push_back({{"kind","computer_strategy"},{"cursor",cursor}});*this=std::move(next);return {};
 }
 
@@ -203,6 +209,7 @@ std::string OriginalSession::continue_computer_occupied_fort(bool recover_scratc
     if(decision.contains("error"))return decision["error"];
     if(decision.value("scratch21",-1)>=0)next.computer_scratch21_=decision["scratch21"];
     if(decision["kind"]=="strategy"){
+        next.remember_argument(decision["argument"]);
         auto &t=next.battle_["tactics"];t["computer_strategy"]=std::move(decision);
         t["moves"].push_back({{"kind",event},{"cursor",cursor},{"frame",next.clock_&255}});
     }else{
@@ -218,6 +225,7 @@ std::string OriginalSession::apply_computer_motion(Json decision,const char *eve
     if(decision.contains("error"))return decision["error"];
     if(decision["kind"]=="move"||decision["kind"]=="attack"){
         next.computer_scratch21_=-1;next.computer_argument_=decision["kind"]=="move"?decision["direction"].get<int>():-1;
+        next.remember_argument(decision["direction"]);
         const int directions[]={3,2,1,0};const int slot=decision["slot"],direction=directions[decision["direction"].get<int>()];int points=t["points"];
         if(decision["kind"]=="move"){
             const auto error=next.state_.tactical_step(slot,direction,points,0);if(!error.empty())return error;
@@ -247,7 +255,7 @@ std::string OriginalSession::continue_computer_flank(){
     auto result=next.state_.tactical_ai_flank(next.battle_["target"],t["computer_motion"]["slot"],t["points"],t["status"]);
     if(result.contains("error"))return result["error"];
     if(result["kind"]=="move"){
-        next.computer_scratch21_=-1;next.computer_argument_=result["direction"];
+        next.computer_scratch21_=-1;next.computer_argument_=result["direction"];next.remember_argument(result["direction"]);
         const int directions[]={3,2,1,0};const int slot=result["slot"];int points=t["points"];
         const auto error=next.state_.tactical_step(slot,directions[result["direction"].get<int>()],points,0);if(!error.empty())return error;
         result["points_before"]=t["points"];result["points_after"]=points;t["points"]=points;t["selected"]=slot;t["computer_cursor"]=slot;
@@ -268,6 +276,7 @@ std::string OriginalSession::retry_computer_strategy(){
     if(result.contains("error"))return result["error"];
     if(result["kind"]=="strategy")t.erase("computer_motion");
     else{t["computer_motion"]["kind"]="scan";t["computer_motion"]["branch"]="strategy_retry";}
+    if(result["kind"]=="strategy")next.remember_argument(result["argument"]);
     t["computer_strategy"]=std::move(result);t["moves"].push_back({{"kind","computer_strategy_retry"},{"cursor",cursor}});*this=std::move(next);return {};
 }
 
@@ -292,10 +301,13 @@ std::string OriginalSession::continue_computer_scan(){
         if(plan.contains("error"))return plan["error"];
         plan.erase("reuse_unit");plan["previous_slot"]=scan["previous_slot"];
         if(plan["kind"]=="move"){
-            next.computer_scratch21_=-1;next.computer_argument_=plan["direction"];
+            next.computer_scratch21_=-1;next.computer_argument_=plan["direction"];next.remember_argument(plan["direction"]);
             const int directions[]={3,2,1,0};int points=t["points"];
             const auto error=next.state_.tactical_step(plan["slot"],directions[plan["direction"].get<int>()],points,0);
-            if(!error.empty())return error;
+            if(!error.empty()){
+                if(error!="剩余机动力不足")return error;
+                plan["blocked"]=true;
+            }
             plan["points_before"]=t["points"];plan["points_after"]=points;plan["destination"]=next.state_.sram()[0xdab+plan["slot"].get<int>()*2];
             t["points"]=points;t["computer_cursor"]=plan["slot"];t["computer"]["kind"]="moved";
         }
@@ -347,6 +359,7 @@ std::string OriginalSession::finish_exhausted_computer_attack(){
     Json context={{"side",0},{"points",0},{"round",t.value("round",0)},{"carry",t.value("carry",0)},
         {"phase",5},{"counter",1},{"reason",0},{"status",t["status"]}};
     const auto result=next.state_.tactical_handover(context);if(result.contains("error"))return result["error"];
+    next.remember_argument(decision["direction"]);
     decision["kind"]="exhausted_attack";decision["points_before"]=t["points"];decision["points_after"]=std::min(40,result["points"].get<int>());
     t["computer_cursor"]=decision["slot"];t["last_exhausted_attack"]=std::move(decision);
     for(const auto *key:{"side","round","carry","status"})t[key]=result[key];

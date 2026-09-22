@@ -10,7 +10,7 @@ import wave
 def audit(directory):
     manifest = json.loads((directory / 'manifest.json').read_text())
     assert manifest['sample_rate'] == 48000
-    assert set(manifest['tracks']) == {'title','diagnosis','campaign','tactical','clash_orders','clash','duel','battle_result','defeat','confirm','cursor','text','unification_0','unification_1','unification_2'}
+    assert set(manifest['tracks']) == {'title','diagnosis','campaign','tactical','clash_orders','clash','duel','battle_result','defeat','confirm','cursor','text','clash_hit','clash_bow','unification_0','unification_1','unification_2'}
     results = {}
     for cue, track in manifest['tracks'].items():
         path = directory / track['file']

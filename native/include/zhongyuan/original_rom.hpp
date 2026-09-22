@@ -44,6 +44,7 @@ public:
     int duel_ai_choice(int own_hp,int enemy_hp,int random,int frame) const;
     std::vector<std::uint8_t> battlefield_pixels(int city) const;
     std::vector<std::uint8_t> tactical_pixels(int city,const std::vector<std::uint8_t> &sram) const;
+    std::vector<std::uint8_t> unification_score_rgb(int year,int month,int difficulty,int ruler,int score) const;
     Json development_tables() const;
     Json search_tables() const;
     Json ai_tables() const;

@@ -1,4 +1,5 @@
 #include "bridge.hpp"
+#include "zhongyuan/save_file.hpp"
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -104,7 +105,7 @@ Error ZhongyuanGame::save_game(const String &path) {
     const Error result = file->get_error();
     file->close();
     if (result != OK) { DirAccess::remove_absolute(temporary); return result; }
-    const Error rename_result = DirAccess::rename_absolute(temporary, absolute);
+    const Error rename_result = zhongyuan::replace_save_file(std::filesystem::u8path(utf8(temporary)), std::filesystem::u8path(utf8(absolute))) ? FAILED : OK;
     if (rename_result != OK) DirAccess::remove_absolute(temporary);
     return rename_result;
 }

@@ -67,7 +67,8 @@ std::string OriginalSession::continue_computer_role_impl(bool empty_slot){
        !old.contains("computer")||old["computer"]["kind"]!="plan"||old["computer"].value("role_slot",-1)<0)return "请先完成守军角色调整评估";
     if(old["moves"].size()>=1024)return "当前行动记录已满";
     auto next=*this;auto &t=next.battle_["tactics"];
-    auto result=empty_slot?next.state_.tactical_empty_role_return(next.computer_argument_,t["points"],t["status"]):next.state_.tactical_role_return(next.computer_argument_,t["points"],t["status"]);
+    const int argument=next.track_argument_?next.persistent_argument_:next.computer_argument_;
+    auto result=empty_slot?next.state_.tactical_empty_role_return(argument,t["points"],t["status"]):next.state_.tactical_role_return(argument,t["points"],t["status"]);
     if(result.contains("error"))return result["error"];
     if(result["kind"]=="waiting")return "守军第 1 队受状态限制，原版仍停留在移动等待阶段";
     next.computer_scratch21_=-1;

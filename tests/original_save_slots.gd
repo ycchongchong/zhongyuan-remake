@@ -1,0 +1,146 @@
+extends SceneTree
+var failures=0
+const SaveSlots=preload("res://scripts/save_slots.gd")
+func check(ok:bool,message:String):
+	print(("PASS: " if ok else "FAIL: ")+message)
+	if not ok:failures+=1
+func write(path:String,text:String):
+	var file=FileAccess.open(path,FileAccess.WRITE)
+	file.store_string(text)
+	file.close()
+func integers(value):
+	if value is float:return int(value)
+	if value is Array:
+		for i in range(value.size()):value[i]=integers(value[i])
+	if value is Dictionary:
+		for key in value:value[key]=integers(value[key])
+	return value
+func _init():call_deferred("run")
+func run():
+	var directory="user://save-slots-regression-%d"%Time.get_ticks_usec()
+	check(DirAccess.make_dir_recursive_absolute(directory)==OK,"create isolated save directory")
+	var paths=[directory+"/槽1.json",directory+"/槽2.json",directory+"/槽3.json"]
+	var scene=load("res://original_campaign.tscn").instantiate()
+	check(scene.initialize(4,0).is_empty(),"initialize campaign")
+	root.add_child(scene);current_scene=scene;scene.set_process(false)
+	await process_frame
+	scene.save_slots.paths=paths
+	check(SaveSlots.PATHS[0]==scene.SAVE,"slot one retains legacy save path")
+	scene.show_save_slots(false)
+	check(scene.save_slots.visible and scene.save_slots.get_ok_button().disabled,"empty load dialog cannot load")
+	check(scene.save_slots.entries.all(func(button):return button.disabled),"all empty load slots disabled")
+	var initial:Dictionary=scene.native.session_snapshot()
+	scene._process(2.0)
+	check(scene.native.session_snapshot()==initial,"slot dialog freezes AI and native clock")
+	scene.save_slots.get_cancel_button().pressed.emit()
+	scene.show_save_slots(true)
+	check(scene.save_slots.entries.all(func(button):return not button.disabled),"all save slots available")
+	scene.save_slots.entries[0].pressed.emit();scene.save_slots.get_ok_button().pressed.emit()
+	check(FileAccess.file_exists(paths[0]) and not FileAccess.file_exists(paths[1]),"save button writes only selected slot")
+	check(scene.save_slots.summary(paths[0]).contains("刘备"),"summary uses correct original ruler IDs")
+	var first_bytes=FileAccess.get_file_as_bytes(paths[0])
+	check(scene.native.load_session("res://tests/natural-role-handover-next.json").is_empty(),"restore battle fixture")
+	scene.refresh();scene.show_battle_details()
+	var battle:Dictionary=scene.native.session_snapshot()
+	scene.clash_timer.start()
+	scene.deployment_action("save")
+	check(scene.save_slots.visible and not scene.battle_details.visible and scene.clash_timer.is_stopped(),"battle save pauses autoplay and opens slots")
+	scene.save_slots.get_cancel_button().pressed.emit()
+	check(scene.battle_details.visible and scene.clash_timer.is_stopped() and scene.native.session_snapshot()==battle,"cancel restores battle without resuming autoplay or changing state")
+	scene.deployment_action("save")
+	scene.save_slots.entries[1].pressed.emit();scene.save_slots.get_ok_button().pressed.emit()
+	check(FileAccess.file_exists(paths[1]) and scene.battle_details.visible and scene.battle_description.text.contains("战场进度已保存"),"battle saved to second slot and confirmation visible")
+	check(FileAccess.get_file_as_bytes(paths[0])==first_bytes,"second-slot save preserves first slot")
+	var battle_bytes=FileAccess.get_file_as_bytes(paths[1])
+	scene.battle_details.hide()
+	check(scene.native.load_session("res://tests/unification-ending-1.json").is_empty(),"restore terminal fixture")
+	scene.refresh()
+	var ending:Dictionary=scene.native.session_snapshot()
+	scene.show_save_slots(true)
+	scene.save_slots.entries[2].pressed.emit();scene.save_slots.get_ok_button().pressed.emit()
+	check(scene.ending_report.visible and FileAccess.file_exists(paths[2]),"third slot saves terminal state and restores report")
+	check(scene.save_slots.summary(paths[2]).contains("战局结束"),"terminal summary is readable")
+	scene.ending_report.hide();scene.show_save_slots(false)
+	scene.save_slots.entries[1].pressed.emit();scene.save_slots.get_ok_button().pressed.emit()
+	check(scene.native.session_snapshot()==battle and not scene.ending_report.visible,"loading battle clears stale ending and restores exact history")
+	check(scene.native.resume_computer_role_after_handover().is_empty(),"restored battle can continue through handover")
+	# Changing a file after the preview must still invoke strict native restore.
+	scene.show_save_slots(false)
+	write(paths[1],'{"format":"native-original-v2"}')
+	var protected_state:Dictionary=scene.native.session_snapshot()
+	scene.save_slots.entries[1].pressed.emit();scene.save_slots.get_ok_button().pressed.emit()
+	check(scene.notice.visible and scene.native.session_snapshot()==protected_state,"corrupt save rejected without changing active battle")
+	scene._process(3.0)
+	check(scene.native.session_snapshot()==protected_state,"error notice preserves paused game and clock")
+	scene.notice.get_ok_button().pressed.emit()
+	check(scene.save_slots.summary(paths[1])=="数据不完整","incomplete JSON preview handled")
+	write(paths[1],'{broken')
+	check(scene.save_slots.summary(paths[1]).contains("损坏"),"malformed preview handled without parser errors")
+	write(paths[1],'[]')
+	check(scene.save_slots.summary(paths[1])=="格式不受支持","wrong root type handled")
+	write(paths[1],'{"format":"native-original-v2","sram":"bad"}')
+	check(scene.save_slots.summary(paths[1])=="数据不完整","wrong SRAM type handled")
+	var file=FileAccess.open(paths[1],FileAccess.WRITE);file.store_buffer(battle_bytes);file.close()
+	# Existing native temporary-file replacement must not truncate the old save.
+	check(DirAccess.make_dir_absolute(paths[0]+".tmp")==OK,"block temporary-file destination")
+	var protected_bytes=FileAccess.get_file_as_bytes(paths[0])
+	check(not scene.native.save_session(paths[0]).is_empty(),"blocked temporary write reports failure")
+	check(FileAccess.get_file_as_bytes(paths[0])==protected_bytes and scene.native.session_snapshot()==protected_state,"failed overwrite preserves old file and running battle")
+	DirAccess.remove_absolute(paths[0]+".tmp")
+	check(scene.native.save_session(paths[0]).is_empty(),"existing slot replacement succeeds")
+	check(not FileAccess.file_exists(paths[0]+".tmp"),"successful replacement removes temporary file")
+	check(scene.native.load_session(paths[0]).is_empty() and scene.native.session_snapshot()==protected_state,"replaced slot restores exact state")
+	var oversized=directory+"/oversized.json"
+	file=FileAccess.open(oversized,FileAccess.WRITE);file.seek(SaveSlots.MAX_BYTES);file.store_8(0);file.close()
+	check(scene.save_slots.summary(oversized).contains("过大") and not scene.native.load_session(oversized).is_empty(),"oversized saves rejected by preview and native loader")
+	check(scene.native.session_snapshot()==protected_state,"oversized load preserves active state")
+	DirAccess.remove_absolute(oversized)
+	# Loading must discard old UI selections before reopening the loaded state.
+	scene.confirm.popup_centered()
+	scene.chosen.assign([240]);scene.clock_remainder=0.75
+	check(scene.load_game(paths[2]),"load ending through game action")
+	check(scene.native.session_snapshot()==ending and scene.ending_report.visible and not scene.confirm.visible and not scene.recruit_dialog.visible and scene.clock_remainder==0.0,"loading closes stale dialogs and resets pending frame fraction")
+	# A read must not collect a ready search party merely by focusing its city.
+	scene.ending_report.hide();scene.native.start_session(4,0)
+	for i in range(32):
+		if scene.native.session_snapshot().phase!="ai_turn":break
+		scene.native.advance_turn()
+	check(scene.native.search(13,145).is_empty(),"dispatch search for load-boundary fixture")
+	scene.native.save_session(paths[0])
+	var ready:Dictionary=integers(JSON.parse_string(FileAccess.get_file_as_string(paths[0])))
+	ready.sram[0xc31]=13
+	write(paths[0],JSON.stringify(ready))
+	check(scene.native.load_session(paths[0]).is_empty(),"controlled ready-search fixture accepted")
+	var pending_return:Dictionary=scene.native.session_snapshot()
+	check(scene.load_game(paths[0]) and scene.native.session_snapshot()==pending_return and not scene.search_report.visible,"loading does not consume search return or RNG")
+	var restored_search=load("res://original_campaign.tscn").instantiate()
+	check(restored_search.initialize(4,0,true,-1,paths[0]).is_empty(),"initialize from selected ready-search slot")
+	root.add_child(restored_search);restored_search.set_process(false)
+	check(restored_search.native.session_snapshot()==pending_return and not restored_search.search_report.visible,"scene startup also leaves ready search pending")
+	restored_search.queue_free();await process_frame
+	scene.select_city(13)
+	check(scene.search_report.visible and scene.native.session_snapshot().pending_search!=null,"explicit city visit still opens original search report")
+	scene.queue_free();await process_frame
+	var opening=load("res://opening.tscn").instantiate();root.add_child(opening);current_scene=opening;opening.set_process(false)
+	opening.save_slots.paths=paths
+	opening.press("START");opening.press("DOWN");opening.press("DOWN");opening.press("A")
+	check(opening.save_slots.visible and current_scene==opening,"title continue opens slot selection")
+	var menu:Dictionary=opening.model.snapshot()
+	opening.press("A");opening._process(3.0)
+	check(opening.model.snapshot()==menu,"title does not accept gameplay inputs while choosing save")
+	opening.save_slots.get_cancel_button().pressed.emit()
+	check(current_scene==opening and not opening.transitioning,"cancel title continue keeps menu")
+	opening.press("A")
+	opening.save_slots.entries[2].pressed.emit();opening.save_slots.get_ok_button().pressed.emit()
+	var restored=current_scene;restored.set_process(false)
+	await process_frame
+	check(restored!=opening and restored.native.session_snapshot()==ending and restored.ending_report.visible,"title loads selected third slot and terminal UI")
+	if "--capture-slots" in OS.get_cmdline_user_args():
+		restored.save_slots.paths=paths;restored.show_save_slots(false)
+		await process_frame;await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("user://save-slots-preview.png")
+	for path in paths:DirAccess.remove_absolute(path)
+	DirAccess.remove_absolute(directory)
+	await root.get_node("OriginalSound").shutdown()
+	print("ORIGINAL SAVE SLOTS: %d failures"%failures)
+	quit(1 if failures else 0)

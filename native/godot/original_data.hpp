@@ -17,6 +17,7 @@ public:
     Dictionary load_rom(const String &path);
     Ref<Image> battlefield_image(int city) const;
     Ref<Image> tactical_image() const;
+    Ref<Image> unification_image() const;
     Ref<Image> town_image(int faction) const;
     Ref<Image> name_image(bool is_officer,int index) const;
     String start_session(int ruler,int difficulty);
